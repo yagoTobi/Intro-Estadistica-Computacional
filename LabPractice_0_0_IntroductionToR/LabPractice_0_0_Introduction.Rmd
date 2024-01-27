@@ -11,8 +11,9 @@ knitr::opts_chunk$set(cache=TRUE, autodep=TRUE, cache.comments=TRUE)
 ```
 
 Name:  
-ICAI ID: 201904136
-Collaborated with:  
+ICAI ID: 201904136 (Victor Ovejero)
+Collaborated with:  Yago Tobio, Luis Bueno
+
 
 This lab is to be done in class (completed outside of class time). You may collaborate with one classmate, but you must identify his/her name above, and you must submit **your own** lab as this completed .Rmd file. 
 
@@ -67,7 +68,7 @@ x <- bin.draws.0.5[2] + bin.draws.0.5[5]
 print(x)
 
 
-# Compare 2nd elmeent ot the 10th,
+# Compare 2nd element to the 10th,
 if (bin.draws.0.5[2] > bin.draws.0.5[10]) {
   cat('The second element: ', bin.draws.0.5[2], ' is larger than the tenth: ', bin.draws.0.5[10], '\n')
 } else {
@@ -75,6 +76,7 @@ if (bin.draws.0.5[2] > bin.draws.0.5[10]) {
 }
 
 # Print indices of the elements that are equal to 3.
+bin.draws.0.5
 
 ```
 
