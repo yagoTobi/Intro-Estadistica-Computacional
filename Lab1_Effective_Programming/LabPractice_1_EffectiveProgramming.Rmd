@@ -24,14 +24,11 @@ knit_hooks$set(output = function(x, options) {
 opts_chunk$set(cache=TRUE, autodep=TRUE, cache.comments=TRUE, linewidth=79)
 ```
 
-Name:  
-ICAI ID:  
-Collaborated with:  
+Name: Victor Ovejero ICAI ID: 201904136 Collaborated with: Yago Tobio, Luis Bueno
 
-This lab is to be done in class (completed outside of class time). You may collaborate with one classmate, but you must identify his/her name above, and you must submit **your own** lab as this completed .Rmd file. 
+This lab is to be done in class (completed outside of class time). You may collaborate with one classmate, but you must identify his/her name above, and you must submit **your own** lab as this completed .Rmd file.
 
-Installing and loading packages 
-===
+# Installing and loading packages
 
 In order to perform the exercise in this practice you should install and load the `microbenchmark` and `profvis` packages. Also install `devtools` in order to install the `efficientR` package where there are datasets that are used in this practice using `devtools::install_github("csgillespie/efficientR")`. You should also install the `proftools` package from CRAN.
 
@@ -40,13 +37,13 @@ In order to perform the exercise in this practice you should install and load th
 ```
 
 From the `Bioconductor` repository you must also install the `graph` and `Rgraphviz` packages. To install packages from this repository, you must install `BiocManager` package first and then use the `BiocManager::install()` function to install the packages.
+
 ```{r, eval = FALSE}
 install.packages("BiocManager", dep = TRUE)
 BiocManager::install(c("Rgraphviz","graph"))
 ```
 
-Q1. Microbenchmarking
-===
+# Q1. Microbenchmarking
 
 **1a.** Use the `microbenchmark::microbenchmark()` function to know which of the following three functions is the fastest to perform the cumulative sum of a 100-element vector. By how much is the fastest with respect to the second one?
 
@@ -74,6 +71,14 @@ cs_apply <- function(x) {
 cumsum(x)
 
 # YOUR CODE GOES HERE
+
+library(microbenchmark)
+
+#Microbenchmark solo permite la comparacion de 2 funciones a la vez. Con un default de 100 evaluaciones hechas en ns.
+
+microbenchmark(cs_for(x),cs_apply(x))
+microbenchmark(cs_for(x),cumsum(x))
+microbenchmark(cs_apply(x),cumsum(x))
 ```
 
 **1b.** Run the same benchmark but now `x` is `1:50000`. As the benchmark could take too long, set the argument `time = 1` in the `microbenchmark` function. Does the relative difference between the fastest and the second fastest increase or decrease? By how much?
@@ -89,6 +94,7 @@ cumsum(x)
 ```
 
 **1d.** Let's profile a section of code with the `Rprof()` function. The code section is a function to compute sample variance of a numeric vector:
+
 ```{r}
 # Compute sample variance of numeric vector x
 sampvar <- function(x) {
@@ -133,16 +139,16 @@ Use the `summaryRprof()` function to print a summary of the code profiling. Whic
 ```
 
 **1e.** `summaryRprof()` function prints a summary of the code profiling, but it is not user-friendly to read. Using the `proftool` packages, let's see the results from the `Rprof.out` file. See the help (`?`) for the functions `readProfiledata` and `plotProfileCallGraph` and plot the results of the code profiling from **1d**.
+
 ```{r q1e}
 # YOUR CODE GOES HERE
 ```
 
-Q2. Efficient set-up
-===
+# Q2. Efficient set-up
 
 Let's check if you have an optimal R installation.
 
-**2a.** What is the exact version of your computer’s operating system?
+**2a.** What is the exact version of your computer's operating system?
 
 ```{r q2a}
 # YOUR CODE GOES HERE
@@ -160,7 +166,7 @@ r1 <- lapply(X, median)
 r2 <- parallel::mclapply(X, median)
 ```
 
-**2c.** Try modifying the settings of your RStudio setup using the Tools > Global Options menu. What settings do you think can affect R performance? (Note only some of them, not ALL of them)
+**2c.** Try modifying the settings of your RStudio setup using the Tools \> Global Options menu. What settings do you think can affect R performance? (Note only some of them, not ALL of them)
 
 ```{r q2c}
 # YOUR CODE GOES HERE
@@ -172,7 +178,7 @@ r2 <- parallel::mclapply(X, median)
 # YOUR CODE GOES HERE
 ```
 
-**2e.** Check how well your computer is suited to perform data analysis tasks. In the following code chunk you will run a benchmark test from the `benchmarkme` package and plot your result against the results from people around the world. Do you think that you should upgrade your computer? 
+**2e.** Check how well your computer is suited to perform data analysis tasks. In the following code chunk you will run a benchmark test from the `benchmarkme` package and plot your result against the results from people around the world. Do you think that you should upgrade your computer?
 
 ```{r q2e, eval=FALSE }
 library("benchmarkme")
@@ -184,8 +190,7 @@ res_io <- benchmark_io(runs = 1, size = 5)
 plot(res_io)
 ```
 
-Q3. Efficient programming
-===
+# Q3. Efficient programming
 
 **3a.** Create a vector `x` of 100 random numbers and use the microbenchmark package to compare the vectorised construct `x = x + 1` to the for loop version `for (i in seq_len(n)) x[i] = x[i] + 1`. Try varying the size of the input vector and check how the results differ. Which functions are being called by each method?
 
@@ -207,6 +212,7 @@ monte_carlo = function(N) {
   return(hits / N)
 }
 ```
+
 Create a vectorized function `monte_carlo_vec` which do not use a `for` loop.
 
 ```{r q3b}
@@ -226,7 +232,7 @@ fib <- function(n)  {
   if(n == 1 || n == 2) return(1)
   fib(n-1) + fib(n-2)
 }
-``` 
+```
 
 Then, using `microbenchmark`, simulate calculating the 10th position of the Fibonacci serie a 100 times with each function. How much faster is the memoized version?
 
@@ -252,10 +258,9 @@ Then, using `microbenchmark`, simulate calculating the 10th position of the Fibo
 # YOUR CODE GOES HERE
 ```
 
-Q4. Efficient data I/O
-===
+# Q4. Efficient data I/O
 
-**4a.** Import data from https://github.com/mledoze/countries/raw/master/countries.json using the `import()` function from the `rio` package. 
+**4a.** Import data from <https://github.com/mledoze/countries/raw/master/countries.json> using the `import()` function from the `rio` package.
 
 ```{r q4a}
 # YOUR CODE GOES HERE
@@ -273,8 +278,7 @@ Q4. Efficient data I/O
 # YOUR CODE GOES HERE
 ```
 
-Q5. Efficient data carpentry
-===
+# Q5. Efficient data carpentry
 
 **5a.** Create the following data.frame:
 
@@ -303,7 +307,7 @@ Now create a tibble tbl_df and repeat the above commands.
 # YOUR CODE GOES HERE
 ```
 
-**5c.** Consider the following string of phone numbers and fruits: 
+**5c.** Consider the following string of phone numbers and fruits:
 
 ```{r, eval = FALSE}
 strings = c(" 219 733 8965", "329-293-8753 ", "banana", "595 794 7569",
@@ -318,8 +322,7 @@ Write expressions in `stringr` and `base R` that return a logical vector reporti
 # YOUR CODE GOES HERE
 ```
 
-Q6. Efficient optimization
-===
+# Q6. Efficient optimization
 
 **6a.** Create a vector `x` and benchmark `any(is.na(x))` against `anyNA(x)`. Do the results vary with the size of the vector?
 
@@ -344,16 +347,17 @@ double test1() {
   return b;
 }
 ```
-* Save the function `test1()` in a separate file. Make sure it works.
-* Write a similar function in R and compare the speed of the C++ and R versions.
-* Create a function called `test2()` where the `double` variables have been replaced by `float`. Do you still get the correct answer?
-* Change `b = b + a` to `b += a` to make your code more `C++` like.
-* (Bonus) What's the difference between `i++` and `++i`?
 
-Q7. Efficient hardware
-===
+-   Save the function `test1()` in a separate file. Make sure it works.
+-   Write a similar function in R and compare the speed of the C++ and R versions.
+-   Create a function called `test2()` where the `double` variables have been replaced by `float`. Do you still get the correct answer?
+-   Change `b = b + a` to `b += a` to make your code more `C++` like.
+-   (Bonus) What's the difference between `i++` and `++i`?
+
+# Q7. Efficient hardware
 
 **7a.** How much RAM does your computer have? (Optional question, privacy above all. Write a random number if you do not want to share your hardware information.)
+
 ```{r q7a}
 # YOUR CODE GOES HERE
 ```

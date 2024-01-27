@@ -10,9 +10,9 @@ output:
 knitr::opts_chunk$set(cache=TRUE, autodep=TRUE, cache.comments=TRUE)
 ```
 
-Name:  
-ICAI ID: 201904136 (Victor Ovejero)
-Collaborated with:  Yago Tobio, Luis Bueno
+Name: Victor Ovejero
+ICAI ID: 201904136 
+Collaborated with: Yago Tobio, Luis Bueno
 
 
 This lab is to be done in class (completed outside of class time). You may collaborate with one classmate, but you must identify his/her name above, and you must submit **your own** lab as this completed .Rmd file. 
@@ -50,7 +50,27 @@ print(bin.draws.0.5[475:length(bin.draws.0.5)])
 **1b.** Try the different methods for selecting the elements of the vector.
 
 ```{r q1b}
-# YOUR CODE GOES HERE
+
+#Using Indexing:
+bin.draws.0.5[5]
+
+#Using a Range of Indices:
+bin.draws.0.5[3:7]
+  
+#Using Logical Indexing:
+bin.draws.0.5[bin.draws.0.5 > 5]
+
+#Using 'head' and 'tail' Functions:
+first_three <- head(bin.draws.0.5, 3)
+last_four <- tail(bin.draws.0.5, 4)
+
+#Using Negative Indices:
+bin.draws.0.5[-2]
+
+#Using 'which' Function (returns the indices of the elements that satisfy the condition):
+indices <- which(bin.draws.0.5 > 5)
+bin.draws.0.5[indices]
+
 ```
 
 **1c.** Use function `length` to get the size of the `bin.draws.0.5` vector
@@ -76,32 +96,55 @@ if (bin.draws.0.5[2] > bin.draws.0.5[10]) {
 }
 
 # Print indices of the elements that are equal to 3.
-bin.draws.0.5
+elements <- which(bin.draws.0.5 == 3)
+print(elements)
 
+# Number of elements equal to 3.
+cat("There are ", length(elements)," elements that are equal to 3.")
+
+# The binomial probability of 3 successes in a trial of 15 when the probability is 0.5 is 0.01389.
+# Using the formula for Expected value E(x,p) = p*x we multiply the number of trials x times the probability and we get:
+print(500*0.01389)
 ```
 
 **1e.** Find the mean and standard deviation of `bin.draws.0.5`. Is the mean close what you'd expect? The standard deviation?
 
 ```{r q1e}
-# YOUR CODE GOES HERE
+mean <- mean(bin.draws.0.5)
+sd <- sd(bin.draws.0.5)
+
+cat("The mean is: ",mean, "\nThe standard deviation is: ", sd)
+
+#The mean is right between 0 and 15, so it is as expected. The standard deviation is around 2, which is also expected.
 ```
 
 **1f.** Call `summary()` on `bin.draws.0.5` and describe the result.
 
 ```{r q1f}
-# YOUR CODE GOES HERE
+summary(bin.draws.0.5)
+
+# The result shows the minimum, 1st Quartile, Median, Mean, 3rd Quartile and Maximum of the vector. The quartiles are around 1.5 from the mean, # which are narrower than the standard deviation as expected. As 1 standard deviation from the mean contain around 67% of the values and 1 quartile away contain around 50% of the values. 
 ```
 
 **1g.** Call `str()` on `bin.draws.0.5` and describe the result.
 
 ```{r q1g}
-# YOUR CODE GOES HERE
+str(bin.draws.0.5)
+# It prints the vector in a string and shows the type of the values within the vector.
 ```
 
 **1h.** Find the data type of the elements in `bin.draws.0.5` using `typeof()`. Then convert `bin.draws.0.5` to a vector of characters, storing the result as `bin.draws.0.5.char`, and use `typeof()` again to verify that you've done the conversion correctly. Call `summary()` on `bin.draws.0.5.char`. Is the result formatted differently from what you saw above? Why?
 
 ```{r q1h}
-# YOUR CODE GOES HERE
+cat("The values within the vector are of type: ",typeof(bin.draws.0.5))
+
+
+# Transform to Char:
+bin.draws.0.5.char <- as.character(bin.draws.0.5)
+typeof(bin.draws.0.5.char)
+
+summary(bin.draws.0.5.char)
+# The summary function now shows the number of characters rather than statistical measures, as the vector does not represent numbers anymore.
 ```
 
 Q2. Some simple plots
