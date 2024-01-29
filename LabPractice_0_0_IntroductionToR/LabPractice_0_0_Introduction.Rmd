@@ -153,25 +153,32 @@ Q2. Some simple plots
 **2a.** The function `plot()` is a generic function in R for the visual display of data. The function `hist()` specifically produces a histogram display. Use `hist()` to produce a histogram of your random draws from the binomial distribution, stored in `bin.draws.0.5`. 
 
 ```{r q2a}
-# YOUR CODE GOES HERE
+hist(bin.draws.0.5)
 ```
 
 **2b.** Call `tabulate()` on `bin.draws.0.5`. What is being shown? Does it roughly match the histogram you produced in the last question?
 
 ```{r q2b}
-# YOUR CODE GOES HERE
+tabulate(bin.draws.0.5)
+
+# tabulate() prints the values of the columns shown in the histogram.
 ```
 
 **2c.** Call `plot()` on `bin.draws.0.5` to display your random values from the binomial distribution. Can you interpret what the `plot()` function is doing here?
 
 ```{r q2c}
-# YOUR CODE GOES HERE
+plot(bin.draws.0.5)
+
+# The function plot() is plotting the index on the x axis and the value on the y axis. 
+# Showing a discrete graph with values in between 15 and 0, and most values being at 7,8,9,10.
 ```
 
 **2d.** Call `plot()` with two arguments, the first being `1:500`, and the second being `bin.draws.0.5`. This creates a scatterplot of `bin.draws.0.5` (on the y-axis) versus the indices 1 through 500 (on the x-axis). Does this match your plot from the last question?
 
 ```{r q2d}
-# YOUR CODE GOES HERE
+plot(1:500,bin.draws.0.5)
+
+# Yes, it's the same as before.
 ```
 
 Q3. More binomials, more plots
@@ -180,19 +187,62 @@ Q3. More binomials, more plots
 **3a.** Generate 500 binomials again, composed of 15 trials each, but change the probability of success to: 0.2, 0.3, 0.4, 0.6, 0.7, and 0.8, storing the results in vectors called `bin.draws.0.2`, `bin.draws.0.3`, `bin.draws.0.4.`, `bin.draws.0.6`, `bin.draws.0.7` and  `bin.draws.0.8`. For each, compute the mean and standard deviation.
 
 ```{r q3a}
-# YOUR CODE GOES HERE
+bin.draws.0.2 <- rbinom(500,15,0.2)
+bin.draws.0.3 <- rbinom(500,15,0.3)
+bin.draws.0.4 <- rbinom(500,15,0.4)
+bin.draws.0.6 <- rbinom(500,15,0.6)
+bin.draws.0.7 <- rbinom(500,15,0.7)
+bin.draws.0.8 <- rbinom(500,15,0.8)
+
+
+# p=0.2
+cat("For p=0.2, the mean is:",mean(bin.draws.0.2)," and the standard deviation is:",sd(bin.draws.0.2))
+# p=0.3
+cat("For p=0.3, the mean is:",mean(bin.draws.0.3)," and the standard deviation is:",sd(bin.draws.0.3))
+# p=0.4
+cat("For p=0.4, the mean is:",mean(bin.draws.0.4)," and the standard deviation is:",sd(bin.draws.0.4))
+# p=0.5
+cat("For p=0.5, the mean is:",mean(bin.draws.0.5)," and the standard deviation is:",sd(bin.draws.0.5))
+# p=0.6
+cat("For p=0.6, the mean is:",mean(bin.draws.0.6)," and the standard deviation is:",sd(bin.draws.0.6))
+# p=0.7
+cat("For p=0.7, the mean is:",mean(bin.draws.0.7)," and the standard deviation is:",sd(bin.draws.0.7))
+# p=0.8
+cat("For p=0.8, the mean is:",mean(bin.draws.0.8)," and the standard deviation is:",sd(bin.draws.0.8))
+
+# 
+
 ```
 
 **3b.** We'd like to compare the properties of our vectors. Create a vector of length 7, whose entries are the means of the 7 vectors we've created, in order according to the success probabilities of their underlying binomial distributions (0.2 through 0.8).
 
 ```{r q3b}
-# YOUR CODE GOES HERE
+
+variable_names <- c("bin.draws.0.2", "bin.draws.0.3", "bin.draws.0.4","bin.draws.0.5", "bin.draws.0.6", "bin.draws.0.7", "bin.draws.0.8")
+#Initialize vector of length 7
+mean_variables <- numeric(7)
+
+i <- 1
+# Populate with means of the 7 probability distributions
+for (name in variable_names) {
+  current_variable <- get(name)
+  mean_variables[i] <- mean(current_variable)
+  i = i + 1
+}
+i <- 1
+
+cat("The mean of the normal distributions is:", mean_variables)
+
 ```
  
 **3c.** Use the `names` function to change the name of the vector samples by `c("bin.draws.0.2", "bin.draws.0.3", "bin.draws.0.4", "bin.draws.0.6", "bin.draws.0.7", "bin.draws.0.8")`.
 
 ```{r q3c}
-# YOUR CODE GOES HERE
+
+# Use the names function to change the names of the vector
+names(mean_variables) <- variable_names
+
+mean_variables
 ```
     
 **3d.** Using the vectors from the last part, create the following scatterplots. Explain in words, for each, what's going on.
@@ -203,7 +253,57 @@ Q3. More binomials, more plots
     **Challenge**: for each plot, add a curve that corresponds to the relationships you'd expect to see in the theoretical population (i.e., with an infinite amount of draws, rather than just 500 draws).
     
 ```{r q3d}
-# YOUR CODE GOES HERE
+probabilities <- c(0.2,0.3,0.4,0.5,0.6,0.7,0.8)
+
+# Mean
+# Scatter plot of Means
+plot(probabilities, mean_variables,
+               main = "Mean of Normal Distributions with varying probability of success",
+               xlab = "Probabilities",
+               ylab = "Mean",
+               col = "blue",        # Set color of points
+               pch = 16,             # Set point character
+               cex = 1.5,            # Set point size
+              
+)
+
+
+# Standard Deviation
+i <- 1
+# Populate with means of the 7 probability distributions
+sd_variables <- numeric(7)
+for (name in variable_names) {
+  current_variable <- get(name)
+  sd_variables[i] <- sd(current_variable)
+  i = i + 1
+}
+i <- 1
+cat("The std are:",sd_variables)
+
+# Scatter plot of STDs
+plot(probabilities, sd_variables,
+               main = "Standard Deviation of Normal Distributions with varying probability of success",
+               xlab = "Probabilities",
+               ylab = "Standard Deviations",
+               col = "blue",        # Set color of points
+               pch = 16,             # Set point character
+               cex = 1.5,            # Set point size
+              
+)
+
+
+
+# Standard Deviations vs Means
+plot(mean_variables, sd_variables,
+               main = "Standard Deviation vs Mean",
+               xlab = "Means",
+               ylab = "Standard Deviations",
+               col = "blue",        # Set color of points
+               pch = 16,             # Set point character
+               cex = 1.5,            # Set point size
+)
+
+
 ```
 
 Q4. Working with matrices
@@ -212,31 +312,77 @@ Q4. Working with matrices
 **4a.** Create a matrix of dimension 500 x 7, called `bin.matrix`, whose columns contain the 7 vectors we've created, in order of the success probabilities of their underlying binomial distributions (0.2 through 0.8). Hint: use `cbind()`. 
 
 ```{r q4a}
-# YOUR CODE GOES HERE
+
+# Create the matrix using cbind
+bin.matrix <- cbind(
+  bin.draws.0.2,
+  bin.draws.0.3,
+  bin.draws.0.4,
+  bin.draws.0.5,
+  bin.draws.0.6,
+  bin.draws.0.7,
+  bin.draws.0.8
+)
+
 ```
 
 **4b.** Print the first five rows of `bin.matrix`. Print the element in the 66th row and 5th column. Compute the largest element in first column. Compute the largest element in all but the first column.
 
 ```{r q4b}
-# YOUR CODE GOES HERE
+
+# First 5 rows
+print(head(bin.matrix,5))
+
+# 66th row and 5th column
+cat("The element in the 66th row and 5th column is:",bin.matrix[66,5])
+
+# Largest element in first column
+cat("The largest element in the first column is:",max(bin.matrix[,1]))
+
+# Largest element in all but the first column
+cat("The largest element in all but the first column is:",max(bin.matrix[,-1]))
+
+
 ```
 
 **4c.** Calculate the column means of `bin.matrix` by using just a single function call.
 
 ```{r q4c}
-# YOUR CODE GOES HERE
+
+matrix_column_means <- colMeans(bin.matrix)
+
 ```
 
 **4d.** Compare the means you computed in the last question to those you computed in Q3b, in two ways. First, using `==`, and second, using `identical()`. What do the two ways report? Are the results compatible? Explain.
 
 ```{r q4d}
-# YOUR CODE GOES HERE
+
+# Using ==
+check_vectors <- matrix_column_means == mean_variables
+cat("Using ==:",check_vectors)
+# Returns True/False for every value in the vector
+
+# Using identical()
+cat("Using identical():",identical(matrix_means,mean_variables))
+# Checks all values, if and only if all are the same, it returns TRUE.
 ```
 
 **4e.** Take the transpose of `bin.matrix` and then take row means. Are these the same as what you just computed? Should they be?
 
 ```{r q4e}
-# YOUR CODE GOES HERE
+
+bin.matrix.T <- t(bin.matrix)
+
+# Calculate Mean of columns
+matrix_row_means <- rowMeans(bin.matrix.T)
+
+# Check if they are the same
+cat("Are the means the same? ", identical(matrix_column_means,matrix_row_means))
+
+# The results are  the same, as the transpose of the original matrix has the columns
+# as rows, the row mean will be the same as the column mean of the original matrix.
+
+
 ```
 
 Q5. Warm up is over, let's go big
