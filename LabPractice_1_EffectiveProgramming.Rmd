@@ -1,0 +1,690 @@
+---
+title: 'Lab 01: Effective Programming'
+author: "Introduction to Statistical Computing"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r, include=FALSE}
+# A hook to wrap output based on a linewidth chunk option
+# From https://github.com/yihui/knitr-examples/blob/master/077-wrap-output.Rmd
+library(knitr)
+hook_output = knit_hooks$get('output')
+knit_hooks$set(output = function(x, options) {
+  # this hook is used only when the linewidth option is not NULL
+  if (!is.null(n <- options$linewidth)) {
+    x = knitr:::split_lines(x)
+    # any lines wider than n should be wrapped
+    if (any(nchar(x) > n)) x = strwrap(x, width = n)
+    x = paste(x, collapse = '\n')
+  }
+  hook_output(x, options)
+})
+opts_chunk$set(cache=TRUE, autodep=TRUE, cache.comments=TRUE, linewidth=79)
+```
+
+**Name**: Yago Tobio Souto ICAI
+
+**ID**: 201802168
+
+**Collaborated with**:
+
+This lab is to be done in class (completed outside of class time). You may collaborate with one classmate, but you must identify his/her name above, and you must submit **your own** lab as this completed .Rmd file.
+
+# Installing and loading packages
+
+In order to perform the exercise in this practice you should install and load the `microbenchmark` and `profvis` packages. Also install `devtools` in order to install the `efficientR` package where there are datasets that are used in this practice using `devtools::install_github("csgillespie/efficientR")`. You should also install the `proftools` package from CRAN.
+
+```{r}
+# YOUR CODE GOES HERE
+# Paquetes a llamar: 
+# 1. microbenchmark
+# 2. profvis
+# 3. devtools
+#install.packages(c("microbenchmark", "profvis", "devtools", "proftools"))
+#devtools::install_github("csgillespie/efficientR")
+```
+
+From the `Bioconductor` repository you must also install the `graph` and `Rgraphviz` packages. To install packages from this repository, you must install `BiocManager` package first and then use the `BiocManager::install()` function to install the packages.
+
+```{r, eval = FALSE}
+install.packages("BiocManager", dep = TRUE)
+BiocManager::install(c("Rgraphviz","graph"))
+```
+
+# Q1. Microbenchmarking
+
+**1a.** Use the `microbenchmark::microbenchmark()` function to know which of the following three functions is the fastest to perform the cumulative sum of a 100-element vector. By how much is the fastest with respect to the second one?
+
+```{r q1a, eval=FALSE}
+x <- 1:100 # initiate vector to cumulatively sum
+
+# Method 1: with a for loop (10 lines)
+cs_for <- function(x) {
+  for (i in x) {
+    if (i == 1) {
+      xc = x[i]
+    } else {
+      xc = c(xc, sum(x[1:i]))
+    }
+  }
+  xc
+}
+
+# Method 2: with apply (3 lines)
+cs_apply <- function(x) {
+  sapply(x, function(x) sum(1:x))
+}
+
+# Method 3: cumsum (1 line)
+cumsum(x)
+
+# YOUR CODE GOES HERE
+library(microbenchmark)
+#Microbenchmark solo permite la comparacion de 2 funciones a la vez. Con un default de 100 evaluaciones hechas en ns. 
+microbenchmark(cs_for(x), cs_apply(x)) #Measured in Microseconds
+microbenchmark(cs_for(x), cumsum(x))   #Measured in Nanoseconds
+microbenchmark(cs_apply(x), cumsum(x)) #Measured in Nanoseconds
+
+```
+
+What we can observe by executing the following block of code is: Mean values of benchmark 1:
+
+\* cs_for(x): 172680 ns
+
+\* cs_apply(x): 137846 ns
+
+Mean value of benchmark 2:
+
+\* cs_for(x): 172470 ns
+
+\* cumsum(x): 1073 ns
+
+Mean value of benchmark 3:
+
+\* cs_apply(x): 97762 ns
+
+\* cumsum(x): 781 ns
+
+[***Function leaderboard based on mean execution time:***]{.underline}
+
+1\. **cumsum(x) - (781 - 1073 ns)**
+
+2\. **cs_apply(x) - (97762 - 137846 ns)**
+
+3\. **cs_for(x) - (172470 - 172680 ns)**
+
+**1b.** Run the same benchmark but now `x` is `1:50000`. As the benchmark could take too long, set the argument `time = 1` in the `microbenchmark` function. Does the relative difference between the fastest and the second fastest increase or decrease? By how much?
+
+```{r q1b}
+# YOUR CODE GOES HERE
+library(microbenchmark)
+x_test <- 1:50000
+benchmark_result <- microbenchmark(
+  cs_for(x_test),
+  cs_apply(x_test),
+  cumsum(x_test),
+  times = 1L 
+)
+summary(benchmark_result)
+```
+
+In the previous exercise, where we executed the functions with a vector x from 1 - 100, the leading function had a minimum time difference of 96,689 ns in terms of average execution time.
+
+For this version, where x ranges from 1 - 50000, we have a difference of: **42919.3 - 329.3 = 42,590 ns**
+
+**So overall, the time difference has almost halved despite having the same functions.** Why?
+
+-   This could be due to Vectorization Efficiency - In case which cumsum is vectorized in R.
+
+-   Fixed Overheads - Computation increases proportionally to the vector size.
+
+**1c.** Try profiling a section of code you have written using the `profvis::profvis()` function. Where are the bottlenecks? Were they where you expected?
+
+```{r q1c}
+# YOUR CODE GOES HERE
+library(profvis)
+
+# Define the functions
+concatenate_for <- function(strings) {
+  result <- ""
+  for (s in strings) {
+    result <- paste0(result, s)
+  }
+  result
+}
+
+concatenate_sapply <- function(strings) {
+  Reduce(paste0, strings)
+}
+
+# Prepare a vector of strings
+strings <- rep("string", times = 10000)
+
+# Profile the functions
+profvis({
+  result_for <- concatenate_for(strings)
+  result_sapply <- concatenate_sapply(strings)
+})
+```
+
+In this example of string concatenation, we can observe that the concatenate_sapply function takes longer to execute than the concatenate_for function. It makes sense, since we are using a smaller number of functions, and less memory.
+
+**1d.** Let's profile a section of code with the `Rprof()` function. The code section is a function to compute sample variance of a numeric vector:
+
+```{r}
+# Compute sample variance of numeric vector x
+sampvar <- function(x) {
+    # Compute sum of vector x
+    my.sum <- function(x) {
+        sum <- 0
+        for (i in x) {
+            sum <- sum + i
+        }
+        sum
+    }
+   
+    # Compute sum of squared variances of the elements of x from
+    # the mean mu
+    sq.var <- function(x, mu) {
+        sum <- 0
+        for (i in x) {
+            sum <- sum + (i - mu) ^ 2
+        }
+        sum
+    }
+   
+    mu <- my.sum(x) / length(x)
+    sq <- sq.var(x, mu)
+    sq / (length(x) - 1)
+}
+```
+
+To use the `Rprof()` function, you shall specify in which file you want to store the results of the profiling. Then you execute the code you want to profile, and then you execute `Rprof(NULL)` to stop profiling. In order to profile the `sampvar()` function applied to a random 100 million number vector:
+
+```{r, eval = FALSE}
+x <- runif(1e8)
+Rprof("Rprof.out", memory.profiling = TRUE)
+y <- sampvar(x)
+Rprof(NULL)
+```
+
+Use the `summaryRprof()` function to print a summary of the code profiling. Which part of the function takes more time to execute? Which part of the function requires more memory?
+
+```{r q1d}
+# YOUR CODE GOES HERE
+summary <- summaryRprof("Rprof.out")
+print(summary)
+```
+
+**1e.** `summaryRprof()` function prints a summary of the code profiling, but it is not user-friendly to read. Using the `proftool` packages, let's see the results from the `Rprof.out` file. See the help (`?`) for the functions `readProfiledata` and `plotProfileCallGraph` and plot the results of the code profiling from **1d**.
+
+```{r q1e}
+library(proftools)
+# YOUR CODE GOES HERE
+profile_data <- readProfileData("Rprof.out")
+plotProfileCallGraph(profile_data)
+```
+
+# Q2. Efficient set-up
+
+Let's check if you have an optimal R installation.
+
+**2a.** What is the exact version of your computer's operating system?
+
+```{r q2a}
+# YOUR CODE GOES HERE
+# Get system information
+system_info <- Sys.info()
+
+# Extract the operating system name
+os_name <- system_info["sysname"]
+
+# Print the operating system name
+print(system_info)
+print(os_name)
+```
+
+**2b.** Start an activity monitor and execute the following chunk.In it, `lapply()` (or its parallel version `mclapply()`) is used to apply a function, median(), over every column in the data frame object X
+
+```{r q2b, eval=FALSE}
+# Note: uses 2+ GB RAM and several seconds or more depending on hardware
+# 1: Create large dataset
+X <- as.data.frame(matrix(rnorm(1e9), nrow = 1e8))
+# 2: Find the median of each column using a single core
+r1 <- lapply(X, median)
+# 3: Find the median of each column using many cores
+r2 <- parallel::mclapply(X, median)
+```
+
+**2c.** Try modifying the settings of your RStudio setup using the Tools \> Global Options menu. What settings do you think can affect R performance? (Note only some of them, not ALL of them)
+
+```{r q2c}
+# YOUR CODE GOES HERE
+```
+
+**2d.** Try some of the shortcuts integrated in RStudio. What shortcuts do you think can save you development time? (Note only some of them, not ALL of them)
+
+```{r q2d}
+# YOUR CODE GOES HERE
+```
+
+**2e.** Check how well your computer is suited to perform data analysis tasks. In the following code chunk you will run a benchmark test from the `benchmarkme` package and plot your result against the results from people around the world. Do you think that you should upgrade your computer?
+
+```{r q2e, eval=FALSE }
+library("benchmarkme")
+# Run standard tests
+res_std <- benchmark_std(runs=3)
+plot(res_std)
+# Run memory I/O tests by reading/writing a 5MB file
+res_io <- benchmark_io(runs = 1, size = 5)
+plot(res_io)
+
+# Not yet I don;t have to upgrade, maybe in 3 years though. 
+```
+
+# Q3. Efficient programming
+
+**3a.** Create a vector `x` of 100 random numbers and use the microbenchmark package to compare the vectorised construct `x = x + 1` to the for loop version `for (i in seq_len(n)) x[i] = x[i] + 1`. Try varying the size of the input vector and check how the results differ. Which functions are being called by each method?
+
+```{r q3a}
+library(microbenchmark)
+# YOUR CODE GOES HERE
+random.pos <- function(N) { 
+  int.max        <- .Machine$integer.max
+  return(sample(int.max, N, replace=TRUE))
+}
+N <- 100
+x <- random.pos(N)
+
+first_function <- function(x) {
+  x <- x + 1
+  return(x)  # Corrected placement of return statement
+}
+
+second_function <- function(x){
+  for (i in seq_len(N)) x[i] = x[i] + 1
+  return (x)
+}
+
+#Microbenchmark solo permite la comparacion de 2 funciones a la vez. Con un default de 100 evaluaciones hechas en ns. 
+microbenchmark(first_function(x), second_function(x)) #Measured in Microseconds
+```
+
+We can observe that the first function has the fastest processing time, this is probably because it performs the operation all at once or in parallel, rather than adding all individual elements in a vector one by one. Meaning that the first one is a vectorised function.
+
+**3b.** Monte Carlo integration can be performed with the following code:
+
+```{r, eval=FALSE}
+monte_carlo = function(N) {
+  hits = 0
+  for (i in seq_len(N)) {
+    u1 = runif(1)
+    u2 = runif(1)
+    if (u1 ^ 2 > u2)
+      hits = hits + 1
+  }
+  return(hits / N)
+}
+```
+
+Okay, so what does this function do?
+
+This function has a hits counter set to 0 initially, then for a determined length, it generates 2 random decimal numbers between 0 and 1 u1 and u2 respectively, **of size 1**. Then if u1 squared is greater than u2, we increase the amount of hits.
+
+This loop is iterated N times, and then we return the precision rate. So how do we do this without a for loop?
+
+**We can generate 2 vectors with the N random values, call these u1 and u2. Then we can apply the condition and sum those which give true. Then divide the answer by N and we obtain the same result.**
+
+Create a vectorized function `monte_carlo_vec` which do not use a `for` loop.
+
+```{r q3b}
+monte_carlo_vec <- function(N){
+  u1 <- runif(N)
+  u2 <- runif(N)
+  hits <- sum(u1^2 > u2)
+  return (hits/N)
+}
+```
+
+**3c.** How much faster is the vectorized function `monte_carlo_vec` with respect to the original function `monte_carlo`?
+
+```{r q3c}
+# YOUR CODE GOES HERE
+N <- 50
+microbenchmark(monte_carlo_vec(N), monte_carlo(N)) 
+```
+
+**As we can observe from the benchmark, monte_carlo_vec is way faster in mean execution time, than the original monte_carlo function. The mean time is 36 us vs. 224 us, respectively.**
+
+**3d.** Using the `memoise` function, create a function called `m_fib` that is the memoized version of the recursive function:
+
+```{r, eval=FALSE}
+fib <- function(n)  {
+  if(n == 1 || n == 2) return(1)
+  fib(n-1) + fib(n-2)
+}
+```
+
+Then, using `microbenchmark`, simulate calculating the 10th position of the Fibonacci serie a 100 times with each function. How much faster is the memoized version?
+
+```{r q3d}
+# YOUR CODE GOES HERE
+library(memoise)
+m_fib <- memoise(fib)
+
+N <- 10
+microbenchmark(m_fib(N), fib(N), times = 100L) 
+```
+
+**We observe that the normal fibonacci function has a shorter execution time by a margin of 10ns compared to the memorised one.**
+
+**3e.** Try varying the parameters of the **3d** exercise. What happens when you measure the computing time of calculating the 1st position of Fibonacci serie? And the 25th?
+
+```{r q3e}
+# YOUR CODE GOES HERE
+# Fibonacci First Postion
+N <- 1
+microbenchmark(m_fib(N), fib(N), times = 100L) 
+```
+
+**We observe that in the case for the 1st position in the Fibonacci Series, the mean execution time has a significantly wider margin, by around 62000 microseconds. However in this case, it's the memorised function the one that is the fastest.**
+
+```{r}
+N <- 25
+microbenchmark(m_fib(N), fib(N), times=100L) 
+```
+
+Likewise for this case, the m_fib ends up being a lot faster, probably as it was already stored, and didn't have to be redeclared.
+
+**3f.** Create the `c_fib` function as the compilation version of the `fib` function declared in exercise **3d** using the `cmpfun` of the `compiler` package. Which is faster, `fib`, `c_fib` or `m_fib`? And `cm_fib` (compiled version of `m_fib`)? And `mc_fib` (memoized version of `c_fib`)?
+
+```{r q3f}
+library(compiler)
+# YOUR CODE GOES HERE
+c_fib <- cmpfun(fib)
+```
+
+**Now we benchmark the 3**
+
+```{r}
+N <- 25
+microbenchmark(m_fib(N), fib(N),c_fib(N), times=100L) 
+```
+
+We can observe that the function with the lowest mean execution time in that order is the memorised fibonacci, then the compiled fibonacci and then the newly declared fib. However the memorised fibonacci function is the fastest at around 120 us.
+
+**Challenge 01.** Calculate the computing time for calculating the Fibonacci serie 5 times from the 1st to the 25th position with the `fib`, `c_fib`, `m_fib`, `cm_fib` and `mc_fib` functions. Store the results for each position and create a plot showing these results. When does it begin to compensate using the memoized version? Hint: Use `geom_point()` and `geom_errorbars()` function of `ggplot2` to show the `median`, `lq` and `uq` values of the `microbenchmark` analysis.
+
+```{r q3ch1}
+# YOUR CODE GOES HERE
+# We must creat the cm_fib meaning compiled memorised functions and the mc_fib, the memorised compiled function. 
+library(microbenchmark)
+library(ggplot2)
+library(memoise)
+library(compiler)
+
+# Define the Fibonacci functions
+fib <- function(n)  {
+  if(n == 1 || n == 2) return(1)
+  fib(n-1) + fib(n-2)
+}
+
+m_fib <- memoise(fib)
+c_fib <- cmpfun(fib)
+cm_fib <- cmpfun(m_fib)
+mc_fib <- memoise(c_fib)
+
+# Benchmarking
+results <- data.frame()
+for (i in 1:25) {
+  bm <- microbenchmark(
+    fib = fib(i),
+    m_fib = m_fib(i),
+    c_fib = c_fib(i),
+    cm_fib = cm_fib(i),
+    mc_fib = mc_fib(i),
+    times = 5
+  )
+  
+  # Extracting benchmarking results and adding position information
+  bm_res <- summary(bm)
+  bm_res$position <- rep(i, nrow(bm_res))
+  results <- rbind(results, bm_res)
+}
+
+# Preparing data for plotting
+results$expr <- as.factor(results$expr)
+results$position <- as.factor(results$position)
+
+# Plotting
+ggplot(results, aes(x = position, y = median, color = expr)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = lq, ymax = uq), width = 0.2) +
+  labs(title = "Benchmarking Fibonacci Functions (1st to 25th Position)",
+       x = "Fibonacci Position",
+       y = "Time (microseconds)",
+       color = "Method") +
+  theme_minimal()
+
+
+```
+
+# Q4. Efficient data I/O
+
+**4a.** Import data from <https://github.com/mledoze/countries/raw/master/countries.json> using the `import()` function from the `rio` package.
+
+```{r q4a}
+# YOUR CODE GOES HERE
+library(rio)
+library(jsonlite)
+# Original dataset did not work, try with a different one. 
+url <- "https://media.githubusercontent.com/media/datablist/sample-csv-files/main/files/customers/customers-100.csv"
+data <- import(url)
+head(data)
+```
+
+**4b.** Export the data imported in **4a** to 3 different file formats of your choosing supported by `rio` (see `vignette("rio")` for supported formats). Try opening these files in external programs. Which file formats are more portable?
+
+```{r q4b}
+# YOUR CODE GOES HERE
+export(data, "people.csv")
+export(data, "people.html")
+export(data, "people.xlsx")
+```
+
+**Challenge 03.** Create a simple benchmark to compare the write times for the different file formats of **4b**. Which is fastest? Which is the most space efficient?
+
+```{r q4ch3}
+library(microbenchmark)
+microbenchmark(export(data, "people.csv"), export(data, "people.html"),export(data, "people.xlsx"), times=100L) 
+
+```
+
+We can see that th fastest file to write is first csv, then xlsx, then .html. Makes sense since the html is the least similar to the original file.
+
+# Q5. Efficient data carpentry
+
+**5a.** Create the following data.frame:
+
+```{r, eval = FALSE}
+df_base = data.frame(colA = "A")
+```
+
+Try and guess the output of the following commands. Quit the `eval = FALSE` argument and check if the output is what you thought.
+
+```{r, eval = FALSE}
+print(df_base)
+df_base$colA #A
+df_base$col  #A -> Return the values of the columns, which is only one
+df_base$colB #Null
+```
+
+Now create a tibble tbl_df and repeat the above commands.
+
+```{r q5a}
+# YOUR CODE GOES HERE
+library(tidyverse)
+tbl_df <- tibble(colA = "A")
+```
+
+**5b.** Load and look at subsets of the `pew` and `lnd_geo_df` datasets from the `efficient` package. What is untidy about them? Convert each of these datasets into tidy form.
+
+```{r}
+#devtools::install_github("csgillespie/efficientR")
+```
+
+```{r q5b}
+# YOUR CODE GOES HERE
+data(pew, package = "efficient")
+head(pew, 10)
+data(lnd_geo_df, package = "efficient")
+head(lnd_geo_df, 10)
+```
+
+**5c.** Consider the following string of phone numbers and fruits:
+
+```{r, eval = FALSE}
+strings = c(" 219 733 8965", "329-293-8753 ", "banana", "595 794 7569",
+            "387 287 6718", "apple", "233.398.9187  ", "482 952 3315", 
+            "239 923 8115", "842 566 4692", "Work: 579-499-7527", 
+            "$1000", "Home: 543.355.3679")
+```
+
+Write expressions in `stringr` and `base R` that return a logical vector reporting whether or not each string contains a number.
+
+```{r q5c}
+library(stringr)
+contains_number_str <- str_detect(strings, "\\d")
+contains_number_str
+```
+
+```{r}
+contains_number_base <- grepl("\\d", strings)
+contains_number_base
+```
+
+# Q6. Efficient optimization
+
+**6a.** Create a vector `x` and benchmark `any(is.na(x))` against `anyNA(x)`. Do the results vary with the size of the vector?
+
+```{r q6a}
+# YOUR CODE GOES HERE
+set.seed(123) # For reproducibility
+
+# Create vectors of different sizes
+sizes <- c(100, 1000, 10000, 100000)
+results <- list()
+
+for (size in sizes) {
+  x <- rnorm(size) # Random normal values
+  x[sample(size, size / 10)] <- NA # Introduce some NAs
+
+  # Benchmark
+  bm <- microbenchmark(
+    any_is_na = any(is.na(x)),
+    anyNA = anyNA(x),
+    times = 100
+  )
+
+  results[[as.character(size)]] <- bm
+}
+
+library(ggplot2)
+
+# Combine results into one data frame
+all_results <- do.call(rbind, lapply(names(results), function(size) {
+  transform(results[[size]], size = as.numeric(size))
+}))
+
+# Plot
+ggplot(all_results, aes(x = size, y = time, color = expr)) +
+  geom_line() +
+  labs(title = "Benchmarking any(is.na(x)) vs anyNA(x)",
+       x = "Vector Size",
+       y = "Time (nanoseconds)")
+```
+
+**6b.** Construct a `matrix` of `integer`s and a `matrix` of `numeric`s and use a `pryr::object_size()` to compare the object occupation.
+
+```{r q6b}
+# YOUR CODE GOES HERE
+install.packages("pryr")
+library(pryr)
+
+# Create a matrix of integers
+matrix_int <- matrix(as.integer(1:10000), nrow = 100, ncol = 100)
+
+# Create a matrix of numerics (doubles)
+matrix_num <- matrix(as.numeric(1:10000), nrow = 100, ncol = 100)
+
+# Memory size of the integer matrix
+size_int <- object_size(matrix_int)
+
+# Memory size of the numeric matrix
+size_num <- object_size(matrix_num)
+
+# Print the sizes
+size_int #40.22kb
+size_num #80.22 kb
+
+```
+
+**6c.** Consider the following piece of code:
+
+```{cpp, eval = FALSE}
+double test1() {
+  double a = 1.0 / 81;
+  double b = 0;
+  for (int i = 0; i < 729; ++i)
+    b = b + a;
+  return b;
+}
+```
+
+```{cpp, eval = FALSE}
+test1_R <- function() {
+  a <- 1 / 81
+  b <- 0
+  for (i in 1:729) {
+    b <- b + a
+  }
+  return(b)
+}
+```
+
+-   Save the function `test1()` in a separate file. Make sure it works.
+-   Write a similar function in R and compare the speed of the C++ and R versions.
+-   Create a function called `test2()` where the `double` variables have been replaced by `float`. Do you still get the correct answer?
+-   Change `b = b + a` to `b += a` to make your code more `C++` like.
+-   (Bonus) What's the difference between `i++` and `++i`?
+
+```{r}
+library(Rcpp)
+library(microbenchmark)
+
+# No C++ installed, compiler? 
+```
+
+# Q7. Efficient hardware
+
+**7a.** How much RAM does your computer have? (Optional question, privacy above all. Write a random number if you do not want to share your hardware information.)
+
+```{r q7a}
+# YOUR CODE GOES HERE
+memory.size() #No longer supported - 16GB
+```
+
+**7b.** Using your preferred search engine, how much does it cost to double the amount of available RAM on your system? (Again, write a random number if you do not want to share your hardware information)
+
+```{r q7b}
+# YOUR CODE GOES HERE - $43
+```
+
+**7c.** Check if you are using a 32-bit or 64-bit version of R.
+
+```{r q7c}
+# YOUR CODE GOES HERE
+R.Version()$arch
+```
