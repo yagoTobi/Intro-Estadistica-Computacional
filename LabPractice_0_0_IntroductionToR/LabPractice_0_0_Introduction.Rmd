@@ -487,7 +487,21 @@ Q7. Going big with lists
 **7a.** Convert `big.bin.draws` into a list using `as.list()` and save the result as `big.bin.draws.list`. Check that you indeed have a list by calling `class()` on the result. Check also that your list has the right length, and that its 1159th element is equal to that of `big.bin.draws`.
 
 ```{r q7a}
-# YOUR CODE GOES HERE
+# Convert big.bin.draws to a list
+big.bin.draws.list <- as.list(big.bin.draws)
+
+# Check the class of big.bin.draws.list
+class_result <- class(big.bin.draws.list)
+
+# Check the length of big.bin.draws.list
+length_result <- length(big.bin.draws.list)
+
+# Compare the 1159th element of big.bin.draws.list with big.bin.draws
+number_comparison <- big.bin.draws.list[[1159]] == big.bin.draws[1159]
+
+cat("Class of big.bin.draws.list:", class_result)
+cat("\nLength of big.bin.draws.list:", length_result)
+cat("\nIs the 1159th element equal:", number_comparison)
 ```
 
 **7b.** Run the code below, to standardize the binomial draws in the list `big.bin.draws.list`. Note that `lapply()` applies the function supplied in the second argument to every element of the list supplied in the first argument, and then returns a list of the function outputs. (We'll learn much more about the `apply()` family of functions later in the course.) Did this `lapply()` command take longer to evaluate than the code you wrote in Q5b? (It should have; otherwise your previous code could have been improved, so go back and improve it.) Why do you think this is the case?
@@ -495,10 +509,19 @@ Q7. Going big with lists
 ```{r, eval=FALSE}
 big.bin.draws.mean = mean(big.bin.draws)
 big.bin.draws.sd = sd(big.bin.draws)
+
 standardize = function(x) {
   return((x - big.bin.draws.mean) / big.bin.draws.sd)
 }
+
 big.bin.draws.list.standardized.slow = lapply(big.bin.draws.list, standardize)
+
+# Lists can hold different types of elements so they are more complex data structures compared to vectors.
+
+# lapply loops over each element in the list this is slower than vectorized operation.
+
+# Each iteration in lapply involves a  call to the standardize function. Function calls in R are relatively expensive in terms of computational time.
+
 ```
 
 **7c.** Run the code below, which again standardizes the binomial draws in the list `big.bin.draws.list`, using `lapply()`. Why is it so much slower than the code in the last question? (You may stop evaluation if it is taking too long!) Think about what is happening each time the function is called.
@@ -508,12 +531,26 @@ standardize.slow = function(x) {
   return((x - mean(big.bin.draws)) / sd(big.bin.draws))
 }
 big.bin.draws.list.standardized.slow = lapply(big.bin.draws.list, standardize.slow)
+
+# The mean and the sd function are called each time the function gets called so it is being calculated 5000000 times.
+
 ```
 
 **7d.** Lastly, let's look at memory useage. The command `object.size(x)` returns the number of bytes used to store the object `x` in your current R session. Find the number of bytes used to store `big.bin.draws` and `big.bin.draws.list`. How many megabytes (MB) is this, for each object? Which object requires more memory, and why do you think this is the case? Remind yourself: why are lists special compared to vectors, and is this property important for the current purpose (storing the binomial draws)?
 
 ```{r q7d}
-# YOUR CODE GOES HERE
+# Calculate the object size of big.bin.draws in bytes and convert to MB
+size_big_bin_draws <- object.size(big.bin.draws) / (1024^2)
+
+# Calculate the object size of big.bin.draws.list in bytes and convert to MB
+size_big_bin_draws_list <- object.size(big.bin.draws.list) / (1024^2)
+
+cat("Size of big.bin.draws in MB:", size_big_bin_draws)
+cat("\nSize of big.bin.draws.list in MB:", size_big_bin_draws_list)
+
+# The lists are more flexible than vectors allowing different types and sizes of elements, vectors store elements of the same type. The cost is a bigger memory usage as there is more information to store like the type of the element.
+
+# In this case the property of lists isn't important so we recommend to use vectors.
 ```
 
 ### Hint #2. Cleaning the workspace and freeing memory
