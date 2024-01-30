@@ -363,7 +363,7 @@ cat("Using ==:",check_vectors)
 # Returns True/False for every value in the vector
 
 # Using identical()
-cat("Using identical():",identical(matrix_means,mean_variables))
+cat("Using identical():",identical(matrix_column_means,mean_variables))
 # Checks all values, if and only if all are the same, it returns TRUE.
 ```
 
@@ -391,19 +391,48 @@ Q5. Warm up is over, let's go big
 **5a.** R's capacity for data storage and computation is very large compared to what was available 10 years ago. Generate 5 million numbers from $\mathrm{Bin}(1 \times 10^6, 0.5)$ distribution and store them in a vector called `big.bin.draws`. Calculate the mean and standard deviation of this vector.
 
 ```{r q5a}
-# YOUR CODE GOES HERE
+# Generate 5 million numbers from Bin(10^6, 0.5)
+big.bin.draws <- rbinom(n = 5000000, size = 1e6, prob = 0.5)
+
+# Calculate mean
+mean_value <- mean(big.bin.draws)
+
+# Calculate standard deviation
+std_deviation <- sd(big.bin.draws)
+
+cat("Mean:", mean_value)
+cat("\nStandard Deviation:", std_deviation)
+
 ```
 
 **5b.** Create a new vector, called `big.bin.draws.standardized`, which is given by taking `big.bin.draws`, subtracting off its mean, and then dividing by its standard deviation. Calculate the mean and standard deviation of `big.bin.draws.standardized`. (These should be 0 and 1, respectively, or very close to it; if not, you've made a mistake somewhere).
 
 ```{r q5b}
-# YOUR CODE GOES HERE
+# Standardize big.bin.draws
+big.bin.draws.standardized <- (big.bin.draws - mean_value) / std_deviation
+
+# Calculate mean of the standardized vector
+mean_standardized <- mean(big.bin.draws.standardized)
+
+# Calculate standard deviation of the standardized vector
+std_deviation_standardized <- sd(big.bin.draws.standardized)
+
+cat("Mean:", mean_standardized)
+cat("\nStandard Deviation:", std_deviation_standardized)
+
 ```
     
 **5d.** Calculate the proportion of times that an element of `big.bin.draws.standardized` exceeds 1.644854. Is this close to 0.05? 
 
 ```{r q5d}
-# YOUR CODE GOES HERE
+# Count the number of elements exceeding 1.644854
+count_exceeding <- sum(big.bin.draws.standardized > 1.644854)
+
+# Calculate the proportion
+proportion_exceeding <- count_exceeding / length(big.bin.draws.standardized)
+
+cat("Proportion exceeding 1.644854:", proportion_exceeding)
+
 ```
 
 Q6. Now let's go really big
@@ -412,31 +441,44 @@ Q6. Now let's go really big
 **6a.** Let's push R's computational engine a little harder. Generate 200 million numbers from $\mathrm{Bin}(10 \times 10^6, 50 \times 10^{-8})$, and save it in a vector called `huge.bin.draws`.
 
 ```{r q6a}
-# YOUR CODE GOES HERE
+# Generate 200 million numbers from Bin(10^6, 50e-8)
+huge.bin.draws <- rbinom(n = 200e6, size = 10e6, prob = 50e-8)
 ```
 
 **6b.** Calculate the mean and standard deviation of `huge.bin.draws`. Are they close to what you'd expect? (They should be very close.) Did it longer to compute these, or to generate `huge.bin.draws` in the first place?
 
 ```{r q6b}
-# YOUR CODE GOES HERE
+# Calculate mean
+mean_huge_bin_draws <- mean(huge.bin.draws)
+
+# Calculate standard deviation
+std_dev_huge_bin_draws <- sd(huge.bin.draws)
+
+cat("Mean:", mean_huge_bin_draws)
+cat("\nStandard Deviation:", std_dev_huge_bin_draws)
+
 ```
 
 **6c.** Calculate the median of `huge.bin.draws`. Did this median calculation take longer than the calculating the mean? Is this surprising?
 
 ```{r q6c}
-# YOUR CODE GOES HERE
+# Calculate median
+median_huge_bin_draws <- median(huge.bin.draws)
+
+cat("Median:", median_huge_bin_draws)
+
 ```
 
 **6d.** Calculate the exponential of the median of the logs of `huge.bin.draws`, in one line of code. Did this take longer than the median calculation applied to `huge.bin.draws` directly? Is this surprising?
 
 ```{r q6d}
-# YOUR CODE GOES HERE
+exp_median_logs <- exp(median(log(huge.bin.draws[huge.bin.draws > 0])))
 ```
 
 **6e.** Plot a histogram of of `huge.bin.draws`, again with a large setting of the `breaks` argument (e.g., `breaks=100`). Describe what you see; is this different from before, when we had 3 million draws? **Challenge**: Is this surprising? What distribution is this?
 
 ```{r q6e}
-# YOUR CODE GOES HERE
+hist(huge.bin.draws, breaks=100, main="Histogram of huge.bin.draws", xlab="Value", ylab="Frequency")
 ```
 
 Q7. Going big with lists
