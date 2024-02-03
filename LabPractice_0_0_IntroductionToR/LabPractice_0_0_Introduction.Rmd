@@ -580,18 +580,24 @@ For **Simdata1.csv** to **Simdata7.csv** and fill the *LabPractice_0_Table.docx*
 
 **8a** Identify if the dataset corresponds to a regression or a classification problem. In the latter, identify if it is a binary or a multiclass problem. Convert the output variable to factors if needed.
 
+Dataset importing:
+
 ```{r q8a}
 data1 <- read.table("Simdata1.csv",sep=";",header=TRUE) # Regression
 data2 <- read.table("Simdata2.csv",sep=";",header=TRUE) # Classification
-length(unique(data2[,ncol(data2)]))
 data3 <- read.table("Simdata3.csv",sep=";",header=TRUE) # Regression
 data4 <- read.table("Simdata4.csv",sep=";",header=TRUE) # Classification
-length(unique(data4[,ncol(data4)]))
 data5 <- read.table("Simdata5.csv",sep=";",header=TRUE) # Classification
-length(unique(data5[,ncol(data5)]))
 data6 <- read.table("Simdata6.csv",sep=";",header=TRUE) # Regression
 data7 <- read.table("Simdata7.csv",sep=";",header=TRUE) # Classification
-length(unique(data7[,ncol(data7)]))
+```
+
+Those datasets with more than 2 variables will be considered classification datasets
+and those with 2 regression. Therefore, Simdata1.csv is Regression and SimData7.csv is classification.
+
+```{}
+# So the classification problem is the one related to SimData7.csv
+# We must find out if it's binary or multi-class
 
 datasets <- list(data1, data2, data3, data4, data5, data6, data7)
 
@@ -601,24 +607,16 @@ for (i in seq_along(datasets)) {
   # Check if the last column is either character or integer
   if (class(datasets[[i]][, ncol(datasets[[i]])]) %in% c("character", "integer")) {
     datasets[[i]]$Y <- as.factor(datasets[[i]]$Y)
-    
-    
   }
 }
-
-
-
-
-#data5$Y <- as.factor(data5[,ncol(data5)])
-
-#data5[,ncol(data5)]
 ```
+
+By analysing the ddataset we can observe that Simdata7.csv is a multi-class regression problem, as it's Y target column has more than 2 values: A,B,C 
 
 **8b** Does the data need preprocessing? Check if there are outliers or missing values. If any, how many are there?
 
 ```{r q8b}
-# Check missing values:
-# Check for missing values in each dataset
+# Check missing values in each dataset
 
 for (i in seq_along(datasets)) {
   # Check for missing values
@@ -631,23 +629,92 @@ for (i in seq_along(datasets)) {
   }
 }
 
-
-
 ```
+Function to detect the number of outliers in each dataset: Based on dataset and input columns
+
+```{r}
+detect_outliers <- function(dataset, num_columns) {
+  # This function assumes that the first 'num_columns' in the dataset are the input columns
+  
+  # Initialize a vector to store the count of outliers for each column
+  outliers_count <- rep(0, num_columns)
+  
+  # Go through each of the specified input columns to detect outliers
+  for (i in 1:num_columns) {
+    # Extract the column by index
+    column_data <- dataset[, i]
+    
+    # Compute the IQR
+    Q1 <- quantile(column_data, 0.25)
+    Q3 <- quantile(column_data, 0.75)
+    IQR <- Q3 - Q1
+    
+    # Determine the bounds for outliers
+    lower_bound <- Q1 - 1.5 * IQR
+    upper_bound <- Q3 + 1.5 * IQR
+    
+    # Count outliers
+    outliers_count[i] <- sum(column_data < lower_bound | column_data > upper_bound)
+  }
+  
+  # Return the count of outliers for each column
+  return(outliers_count)
+}
+
+outlier_count_1 <- detect_outliers(data1, 1)
+outlier_count_2 <- detect_outliers(na.omit(data2), 2)
+outlier_count_3 <- detect_outliers(data3, 1)
+outlier_count_4 <- detect_outliers(data4, 2)
+outlier_count_5 <- detect_outliers(data5, 2)
+outlier_count_6 <- detect_outliers(data1, 1)
+outlier_count_7 <- detect_outliers(data7, 2)
+
+``` 
 
 **8c** Use `ggplot2` for plotting a 2D scatterplot of the data. If Y is categorical, make sure to change the color or the shape of the data depending on the values of Y.
 
 ```{r q8c}
 # data1
-ggplot(data1, aes(x = V1, y = V2)) +
+ggplot(data1, aes(x = X1, y = Y)) +
   geom_point(size = 3) +
   labs(title = "2D Scatter Plot of data1") +
   theme_minimal()
 
 # data2
-ggplot(data1, aes(x = V1, y = V2)) +
+ggplot(data2, aes(x = X1, y = X2, color = Y)) +
   geom_point(size = 3) +
-  labs(title = "2D Scatter Plot of data1") +
+  labs(title = "2D Scatter Plot of data2") +
+  theme_minimal()
+
+#data3
+ggplot(data3, aes(x = X1, y = Y)) +
+  geom_point(size = 3) +
+  labs(title = "2D Scatter Plot of data3") +
+  theme_minimal()
+
+# data4
+ggplot(data4, aes(x = X1, y = X2, color = Y)) +
+  geom_point(size = 3) +
+  labs(title = "2D Scatter Plot of data4") +
+  theme_minimal()
+
+# data5
+ggplot(data5, aes(x = X1, y = X2, color = Y)) +
+  geom_point(size = 3) +
+  labs(title = "2D Scatter Plot of data5") +
+  theme_minimal()
+
+#data6
+ggplot(data6, aes(x = X1, y = Y)) +
+  geom_point(size = 3) +
+  labs(title = "2D Scatter Plot of data6") +
+  theme_minimal()
+
+
+# data7
+ggplot(data7, aes(x = X1, y = X2, color = Y)) +
+  geom_point(size = 3) +
+  labs(title = "2D Scatter Plot of data7") +
   theme_minimal()
 ```
 
@@ -683,13 +750,44 @@ Q9. More complicated basics
 **9a.** Let's start easy by working through some R basics, to continue to brush up on them. Define a variable `x.vec` to contain the integers 1 through 100. Check that it has length 100. Report the data type being stored in `x.vec`. Add up the numbers in `x.vec`, by calling a built-in R function. How many arithmetic operations did this take? **Challenge**: show how Gauss would have done this same calculation as a 7 year old, using just 3 arithmetic operations.
 
 ```{r q9a}
-# YOUR CODE GOES HERE
+x.vec <- 1:100
+
+# Check the length
+length_x_vec <- length(x.vec) #100L 
+
+# Report the data type stored in x.vec
+data_type <- typeof(x.vec) # integer
+
+sum_x_vec <- sum(x.vec) #5050L
+
+# Gauss's method to calculate the sum of an arithmetic series is the following formula: 
+# Sum = n/2 * (first_number + last_number) where n is the 100 terms in the series
+# We create the formula with generic inputs, so it's formulaic
+gauss_sum <- length_x_vec / 2 * (x.vec[1] + x.vec[length_x_vec])
+#Output: 5050
 ```
 
 **9b.** Convert `x.vec` into a matrix with 20 rows and 5 columns, and store this as `x.mat`. Here `x.mat` should be filled out in the default order (column major order). Check the dimensions of `x.mat`, and the data type as well. Compute the sums of each of the 5 columns of `x.mat`, by calling a built-in R function. Check (using a comparison operator) that the sum of column sums of `x.mat` equals the sum of `x.vec`.
 
 ```{r q9b}
-# YOUR CODE GOES HERE
+# Convert x.vec into a matrix with 20 rows and 5 columns, filled by columns (column-major order)
+x.mat <- matrix(x.vec, nrow = 20, ncol = 5)
+
+# Check the dimensions of x.mat
+dim_x.mat <- dim(x.mat)
+
+# Check the data type of x.mat
+data_type_x.mat <- typeof(x.mat)
+
+# Compute the sums of each of the 5 columns of x.mat
+col_sums_x.mat <- colSums(x.mat)
+
+# Check that the sum of column sums of x.mat equals the sum of x.vec
+sum_col_sums_x.mat <- sum(col_sums_x.mat)
+check_equality <- sum_col_sums_x.mat == sum(x.vec)
+
+# The results should indicate the dimensions of the matrix, the data type, the column sums,
+# and whether the sum of the column sums equals the sum of x.vec.
 ```
 
 **9c.** Extract and display rows 1, 5, and 17 of `x.mat`, with a single line of code. Answer the following questions, each with a single line of code: how many elements in row 2 of `x.mat` are larger than 40? How many elements in column 3 are in between 45 and 50? How many elements in column 5 are odd? Hint: take advantage of the `sum()` function applied to Boolean vectors.
