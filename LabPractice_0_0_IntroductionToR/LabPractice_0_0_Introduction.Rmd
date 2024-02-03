@@ -581,19 +581,74 @@ For **Simdata1.csv** to **Simdata7.csv** and fill the *LabPractice_0_Table.docx*
 **8a** Identify if the dataset corresponds to a regression or a classification problem. In the latter, identify if it is a binary or a multiclass problem. Convert the output variable to factors if needed.
 
 ```{r q8a}
-# YOUR CODE GOES HERE
+data1 <- read.table("Simdata1.csv",sep=";",header=TRUE) # Regression
+data2 <- read.table("Simdata2.csv",sep=";",header=TRUE) # Classification
+length(unique(data2[,ncol(data2)]))
+data3 <- read.table("Simdata3.csv",sep=";",header=TRUE) # Regression
+data4 <- read.table("Simdata4.csv",sep=";",header=TRUE) # Classification
+length(unique(data4[,ncol(data4)]))
+data5 <- read.table("Simdata5.csv",sep=";",header=TRUE) # Classification
+length(unique(data5[,ncol(data5)]))
+data6 <- read.table("Simdata6.csv",sep=";",header=TRUE) # Regression
+data7 <- read.table("Simdata7.csv",sep=";",header=TRUE) # Classification
+length(unique(data7[,ncol(data7)]))
+
+datasets <- list(data1, data2, data3, data4, data5, data6, data7)
+
+class(data4$Y) %in% c("character", "integer")
+
+for (i in seq_along(datasets)) {
+  # Check if the last column is either character or integer
+  if (class(datasets[[i]][, ncol(datasets[[i]])]) %in% c("character", "integer")) {
+    datasets[[i]]$Y <- as.factor(datasets[[i]]$Y)
+    
+    
+  }
+}
+
+
+
+
+#data5$Y <- as.factor(data5[,ncol(data5)])
+
+#data5[,ncol(data5)]
 ```
 
 **8b** Does the data need preprocessing? Check if there are outliers or missing values. If any, how many are there?
 
 ```{r q8b}
-# YOUR CODE GOES HERE
+# Check missing values:
+# Check for missing values in each dataset
+
+for (i in seq_along(datasets)) {
+  # Check for missing values
+  missing_values <- sum(is.na(datasets[[i]]))
+  
+  if (missing_values > 0) {
+    print(paste("Number of missing values in data", i, ":", missing_values))
+  } else {
+    print(paste("No missing values in data", i))
+  }
+}
+
+
+
 ```
 
 **8c** Use `ggplot2` for plotting a 2D scatterplot of the data. If Y is categorical, make sure to change the color or the shape of the data depending on the values of Y.
 
 ```{r q8c}
-# YOUR CODE GOES HERE
+# data1
+ggplot(data1, aes(x = V1, y = V2)) +
+  geom_point(size = 3) +
+  labs(title = "2D Scatter Plot of data1") +
+  theme_minimal()
+
+# data2
+ggplot(data1, aes(x = V1, y = V2)) +
+  geom_point(size = 3) +
+  labs(title = "2D Scatter Plot of data1") +
+  theme_minimal()
 ```
 
 **8d** Can you find the solution of the problem? Can you express the solution mathematically?
