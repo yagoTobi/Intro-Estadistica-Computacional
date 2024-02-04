@@ -938,25 +938,55 @@ Q11. Exploratory data analysis with plots
 **11a.** Using `hist()`, produce a histogram of the log cancer volume measurements of the 97 men in the data set; also produce a histogram of the log cancer weight. In each case, use `breaks=20` as an arugment to `hist()`. Comment just briefly on the distributions you see. Then, using `plot()`, produce a scatterplot of the log cancer volume (y-axis) versus the log cancer weight (x-axis). Do you see any kind of relationship? Would you expect to? **Challenge**: how would you measure the strength of this relationship formally? Note that there is certainly more than one way to do so. We'll talk about statistical modeling tools later in the course.
 
 ```{r q11a}
-# YOUR CODE GOES HERE
+
+# Histogram for log cancer volume
+hist(pros.dat[,"lcavol"], breaks = 20, main = "Histogram of Log Cancer Volume", xlab = "Log Cancer Volume")
+
+# Histogram for log prostate weight
+hist(pros.dat[,"lweight"], breaks = 20, main = "Histogram of Log Prostate Weight", xlab = "Log Prostate Weight")
+
+# Scatterplot for log cancer volume versus log prostate weight
+plot(pros.dat[,"lweight"], pros.dat[,"lcavol"], main = "Scatterplot of Log Cancer Volume vs Log Prostate Weight", xlab = "Log Prostate Weight", ylab = "Log Cancer Volume")
 ```
 
 **11b.** Produce scatterplots of log cancer weight versus age, and log cancer volume versus age. Do you see relationships here between the age of a patient and the volume/weight of his cancer?
 
 ```{r q11b}
-# YOUR CODE GOES HERE
+
+# Scatterplot for log cancer weight versus age
+plot(pros.dat[,"age"], pros.dat[,"lweight"], main = "Scatterplot of Log Cancer Weight vs Age", xlab = "Age", ylab = "Log Cancer Weight")
+
+# Scatterplot for log cancer volume versus age
+plot(pros.dat[,"age"], pros.dat[,"lcavol"], main = "Scatterplot of Log Cancer Volume vs Age", xlab = "Age", ylab = "Log Cancer Volume")
+
+# Calculate correlation coefficient for log cancer weight and age
+correlation_weight_age <- cor(pros.dat[,"age"], pros.dat[,"lweight"])
+print(paste("Correlation coefficient for Log Cancer Weight and Age:", correlation_weight_age))
+# Calculate correlation coefficient for log cancer volume and age
+correlation_volume_age <- cor(pros.dat[,"age"], pros.dat[,"lcavol"])
+print(paste("Correlation coefficient for Log Cancer Volume and Age:", correlation_volume_age))
+
+
+# No se puede apreciar una fuerte correlación entre las variables.
 ```
 
 **11c.** Produce a histogram of the log cancer density, and a scatterplot of the log cancer density versus age. Comment on any similarities/differences you see between these plots, and the corresponding ones you produced above for log cancer volume/weight.
 
 ```{r q11c}
-# YOUR CODE GOES HERE
+# Histogram for log cancer density
+hist(pros.dat[,"lcavol"], breaks = 20, main = "Histogram of Log Cancer Density", xlab = "Log Cancer Density")
+
+# Scatterplot for log cancer density versus age
+plot(pros.dat[,"age"], pros.dat[,"lcavol"], main = "Scatterplot of Log Cancer Density vs Age", xlab = "Age", ylab = "Log Cancer Density")
+
+
 ```
 
 **11d.** Delete the last column, corresponding to the log cancer density, from the `pros.dat` matrix, using negative integer indexing.
 
 ```{r q11d}
-# YOUR CODE GOES HERE
+# Delete the last column
+pros.dat.new <- pros.dat[, -ncol(pros.dat)]
 ```
 
 Q12. A bit of Boolean indexing never hurt anyone
@@ -965,19 +995,47 @@ Q12. A bit of Boolean indexing never hurt anyone
 **12a.** The `svi` variable in the `pros.dat` matrix is binary: 1 if the patient had a condition called "seminal vesicle invasion" or SVI, and 0 otherwise. SVI (which means, roughly speaking, that the cancer invaded into the muscular wall of the seminal vesicle) is bad: if it occurs, then it is believed the prognosis for the patient is poorer, and even once/if recovered, the patient is more likely to have prostate cancer return in the future. Compute a Boolean vector called `has.svi`, of length 97, that has a `TRUE` element if a row (patient) in `pros.dat` has SVI, and `FALSE` otherwise. Then using `sum()`, figure out how many patients have SVI.
 
 ```{r q12a}
-# YOUR CODE GOES HERE
+# Create the Boolean vector has.svi
+has.svi <- pros.dat[,"svi"] == 1
+
+# Count the number of patients with SVI
+num_patients_with_svi <- sum(has.svi)
+
+# Display the result
+print(paste("Number of patients with SVI:", num_patients_with_svi))
+
 ```
 
 **12b.** Extract the rows of `pros.dat` that correspond to patients with SVI, and the rows that correspond to patients without it. Call the resulting matrices `pros.dat.svi` and `pros.dat.no.svi`, respectively. You can do this in two ways: using the `has.svi` Boolean vector created above, or using on-the-fly Boolean indexing, it's up to you. Check that the dimensions of `pros.dat.svi` and `pros.dat.no.svi` make sense to you.
 
 ```{r q12b}
-# YOUR CODE GOES HERE
+# Using Boolean indexing
+pros.dat.svi <- pros.dat[has.svi, ]
+pros.dat.no.svi <- pros.dat[!has.svi, ]
+
+# Check the dimensions
+cat("Dimensions of pros.dat.svi:",dim(pros.dat.svi))
+
+cat("Dimensions of pros.dat.no.svi:",dim(pros.dat.no.svi))
+
 ```
 
 **12c.** Using the two matrices `pros.dat.svi` and `pros.dat.no.svi` that you created above, compute the means of each variable in our data set for patients with SVI, and for patients without it. Store the resulting means into vectors called `pros.dat.svi.avg` and `pros.dat.no.svi.avg`, respectively. Hint: for each matrix, you can compute the means with a single call to a built-in R function. What variables appear to have different means between the two groups? 
 
 ```{r q12c}
-# YOUR CODE GOES HERE
+# Compute means for patients with SVI
+pros.dat.svi.avg <- colMeans(pros.dat.svi)
+
+# Compute means for patients without SVI
+pros.dat.no.svi.avg <- colMeans(pros.dat.no.svi)
+
+# Display the resulting means
+cat("Means for patients with SVI:",pros.dat.svi.avg)
+
+
+cat("Means for patients without SVI:",pros.dat.no.svi.avg)
+
+
 ```
 
 Q13. Computing standard deviations using iteration
@@ -988,7 +1046,7 @@ Q13. Computing standard deviations using iteration
 ```{r q13a, eval=FALSE}
 pros.dat.svi.sd = vector(length=ncol(pros.dat))
 i = 1
-# YOUR CODE GOES HERE
+pros.dat.svi.sd[i] = sd(pros.dat.svi[, i])
 ```
 
 **13b.** Repeat the calculation as in the previous question, but for patients without SVI. That is, produce three lines of code: the first should define an empty vector `pros.dat.no.svi.sd` of length `ncol(pros.dat)` (of length 9), the second should define an index variable `i` and set it equal to 1, and the third should fill the `i`th element of `pros.dat.no.svi.sd` with the standard deviation of the `i`th column of `pros.dat.no.svi`.
@@ -996,22 +1054,40 @@ i = 1
 ```{r q13b, eval = FALSE}
 pros.dat.no.svi.sd = vector(length=ncol(pros.dat))
 i = 1
-# YOUR CODE GOES HERE
+pros.dat.no.svi.sd = vector(length=ncol(pros.dat))
+i = 1
+pros.dat.no.svi.sd[i] = sd(pros.dat.no.svi[, i])
+
 ```
 
 **13c.** Write a `for()` loop to compute the standard deviations of the columns of `pros.dat.svi` and `pros.dat.no.svi`, and store the results in the vectors `pros.dat.svi.sd` and `pros.dat.no.svi.sd`, respectively, that were created above. Note: you should have a single `for()` loop here, not two for loops. And if it helps, consider breaking this task down into two steps: as the first step, write a `for()` loop that iterates an index variable `i` over the integers between 1 and the number of columns of `pros.dat` (don't just manually write 9 here, pull out the number of columns programmatically), with an empty body. As the second step, paste relevant pieces of your solution code from Q5a and Q5b into the body of the `for()` loop. Print out the resulting vectors `pros.dat.svi.sd` and `pros.dat.no.svi.sd` to the console. Comment, just briefly (informally), by visually inspecting these standard deviations and the means you computed in Q4c: which variables exhibit large differences in means between the SVI and non-SVI patients, relative to their standard deviations?
 
 ```{r q13c}
-# YOUR CODE GOES HERE
+# Step 1: Iterate over the columns
+for (i in 1:ncol(pros.dat)) {
+  # Step 2: Compute standard deviation for SVI patients
+  pros.dat.svi.sd[i] = sd(pros.dat.svi[, i])
+  
+  # Compute standard deviation for non-SVI patients
+  pros.dat.no.svi.sd[i] = sd(pros.dat.no.svi[, i])
+}
+
+# Print the resulting vectors
+cat("Standard Deviations for SVI Patients:",pros.dat.svi.sd)
+
+
+cat("Standard Deviations for Non-SVI Patients:",pros.dat.no.svi.sd)
+
 ```
 
 **13d.** The code below computes the standard deviations of the columns of `pros.dat.svi` and `pros.dat.no.svi`, and stores them in `pros.dat.svi.sd.master` and `pros.dat.no.svi.sd.master`, respectively, using `apply()`. (We'll learn `apply()` and related functions a bit later in the course.) Remove `eval=FALSE` as an option to the Rmd code chunk, and check using `all.equal()` that the standard deviations you computed in the previous question equal these "master" copies. Note: use `check.names=FALSE` as a third argument to `all.equal()`, which instructs it to ignore the names of its first two arguments. (If `all.equal()` doesn't succeed in both cases, then you must have done something wrong in computing the standard deviations, so go back and fix them!)
 
-```{r, eval=FALSE}
+```{r,}
 pros.dat.svi.sd.master = apply(pros.dat.svi, 2, sd)
 pros.dat.no.svi.sd.master = apply(pros.dat.no.svi, 2, sd)
 all.equal(pros.dat.svi.sd, pros.dat.svi.sd.master, check.names=FALSE)
 all.equal(pros.dat.no.svi.sd, pros.dat.no.svi.sd.master, check.names=FALSE)
+
 ```
 
 Q14. Computing t-tests using vectorization
