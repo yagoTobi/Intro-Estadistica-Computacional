@@ -1199,13 +1199,19 @@ Q18. Practice with the apply family
 **18a.** Using `sapply()`, calculate the mean of each variable. Also, calculate the standard deviation of each variable. Each should require just one line of code. Display your results.
 
 ```{r q18a}
-# YOUR CODE GOES HERE
+means <- sapply(pros.dat, mean, na.rm = TRUE) # Calculate the mean of each variable
+sds <- sapply(pros.dat, sd, na.rm = TRUE) # Calculate the standard deviation of each variable
+
+print(means)
+print(sds)
 ```
 
 **18b.** Let's plot each variable against SVI. Using `lapply()`, plot each column, excluding SVI, on the y-axis with SVI on the x-axis. This should require just one line of code. **Challenge**: label the y-axes in your plots appropriately. Your solution should still consist of just one line of code and use an apply function. Hint: for this part, consider using `mapply()`.
 
 ```{r q18b}
-# YOUR CODE GOES HERE
+#lapply(names(pros.dat)[-which(names(pros.dat) == "svi")], function(x) plot(pros.dat[["svi"]], pros.dat[[x]], main = x, xlab = 'svi', ylab=x))
+
+mapply(function(x, y) plot(pros.dat$svi, pros.dat[[x]], main=y, xlab="svi", ylab=y), names(pros.dat)[-match("svi", names(pros.dat))], names(pros.dat)[-match("svi", names(pros.dat))])
 ```
 
 **18c.** Now, use `lapply()` to perform t-tests for each variable in the data set, between SVI and non-SVI groups. To be precise, you will perform a t-test for each variable excluding the SVI variable itself. For convenience, we've defined a function `t.test.by.ind()` below, which takes a numeric variable `x`, and then an indicator variable `ind` (of 0s and 1s) that defines the groups. Run this function on the columns of `pros.dat`, excluding the SVI column itself, and save the result as `tests`. What kind of data structure is `tests`? Print it to the console.
@@ -1218,13 +1224,19 @@ t.test.by.ind = function(x, ind) {
 ```
 
 ```{r q18c2}
-# YOUR CODE GOES HERE
+ind <- ifelse(pros.dat$svi > median(pros.dat$svi), 1, 0)
+tests <- lapply(pros.dat[-which(names(pros.dat) == 'svi')], function(x) t.test.by.ind(x,ind))
+```
+
+```{r q18c3}
+print(tests) # Of type list
 ```
 
 **18d.** Using `lapply()` again, extract the p-values from the `tests` object you created in the last question, with just a single line of code. Hint: first, take a look at the first element of `tests`, what kind of object is it, and how is the p-value stored? Second, run the command `` `[[`(pros.dat, "lcavol")`` in your console---what does this do? Now use what you've learned to extract p-values from the `tests` object.
 
 ```{r q18d}
-# YOUR CODE GOES HERE
+p_values <- lapply(tests, function(x) x$p.value)
+print(p_values)
 ```
 
 Rio Olympics data set
@@ -1242,37 +1254,92 @@ Q19. More practice with data frames and apply
 **19a.** What kind of object is rio? What are its dimensions and columns names of `rio`? What does each row represent? Is there any missing data?
 
 ```{r q19a}
-# YOUR CODE GOES HERE
+class(rio) # data.fram
+dim(rio)   # 11538 12 
+names(rio) #"id" "name" "nationality" "sex" "date_of_birth" "height" "weight" ...
+anyNA(rio) #TRUE
+colSums(is.na(rio)) # height -> 330. weight -> 659
 ```
 
 **19b.** Use `rio` to answer the following questions. How many athletes competed in the 2016 Summer Olympics? How many countries were represented? What were these countries, and how many athletes competed for each one? Which country brought the most athletes, and how many was this? Hint: for a factor variable `f`, you can use `table(f)` see how many elements in `f` are in each level of the factor.
 
 ```{r q19b}
-# YOUR CODE GOES HERE
+nrow(rio)
+length(unique(rio$nationality))
+table(unique(rio$nationality))
 ```
-
+```{r}
+country_counts <- table(rio$nationality)
+max_country <- names(which.max(country_counts))
+max_count <- max(country_counts)
+paste(max_country, max_count)
+```
 **19c.** How many medals of each type---gold, silver, bronze---were awarded at this Olympics? Are they equal? Is this result surprising, and can you explain what you are seeing?
 
 ```{r q19c}
-# YOUR CODE GOES HERE
+total_gold <- sum(rio$gold, na.rm = TRUE)
+total_silver <- sum(rio$silver, na.rm = TRUE)
+total_bronze <- sum(rio$bronze, na.rm = TRUE)
+
+medal_counts <- c(Gold = total_gold, Silver = total_silver, Bronze = total_bronze)
+medal_counts
+
+all.equal(medal_counts["gold"], medal_counts["silver"], medal_counts["bronze"])
+
+#The results are surprising since the number of gold, silver and bronze medals are different, however the function says that the number is equal. Why is this? Because all.equal is used to compare two objects for **near equality**, and it's not designed to directly compare multiple numeric values for exact equality in the way it's being used here.
+
+is_equal <- (total_gold == total_silver) && (total_silver == total_bronze)
+is_equal
 ```
 
 **19d.** Create a column called `total` which adds the number of gold, silver, and bronze medals for each athlete, and add this column to `rio`. Which athlete had the most number of medals and how many was this? Gold medals? Silver medals? In the case of ties, here, display all the relevant athletes. 
 
 ```{r q19d}
 # YOUR CODE GOES HERE
+rio$total <- rio$gold + rio$silver + rio$bronze
+
+max_total_medals <- max(rio$total)
+athletes_most_total_medals <- rio$name[rio$total == max_total_medals]
+
+max_gold_medals <- max(rio$gold)
+athletes_most_gold_medals <- rio$name[rio$gold == max_gold_medals]
+
+max_silver_medals <- max(rio$silver)
+athletes_most_silver_medals <- rio$name[rio$silver == max_silver_medals]
+
+cat("Athletes with the most total medals:", paste(athletes_most_total_medals, collapse = ", "), "\n")
+cat("Number of total medals:", max_total_medals, "\n")
+cat("Athletes with the most gold medals:", paste(athletes_most_gold_medals, collapse = ", "), "\n")
+cat("Number of gold medals:", max_gold_medals, "\n")
+cat("Athletes with the most silver medals:", paste(athletes_most_silver_medals, collapse = ", "), "\n")
+cat("Number of silver medals:", max_silver_medals, "\n")
 ```
 
 **19e.** Using `tapply()`, calculate the total medal count for each country. Save the result as `total.by.nat`, and print it to the console. Which country had the most number of medals, and how many was this? How many countries had zero medals?
 
 ```{r q19e}
-# YOUR CODE GOES HERE
+rio$total_medals <- rio$gold + rio$silver + rio$bronze
+total.by.nat <- tapply(rio$total_medals, rio$nationality, sum)
+print(total.by.nat)
+
+max_medals <- max(total.by.nat)
+country_most_medals <- names(total.by.nat)[total.by.nat == max_medals]
+countries_zero_medals <- sum(total.by.nat == 0)
+
+cat("Country with the most medals:", country_most_medals, "with", max_medals, "medals\n")
+cat("Number of countries with zero medals:", countries_zero_medals, "\n")
 ```
 
 **19f.** Among the countries that had zero medals, which had the most athletes, and how many athletes was this? (Ouch!)
 
 ```{r q19f}
-# YOUR CODE GOES HERE
+countries_with_zero_medals <- names(total.by.nat[total.by.nat == 0])
+athletes_count_zero_medals <- table(rio$nationality[rio$nationality %in% countries_with_zero_medals])
+max_athletes_zero_medals <- max(athletes_count_zero_medals)
+country_most_athletes_zero_medals <- names(athletes_count_zero_medals)[athletes_count_zero_medals == max_athletes_zero_medals]
+
+cat("Country with the most athletes but zero medals:", country_most_athletes_zero_medals, "\n")
+cat("Number of athletes:", max_athletes_zero_medals, "\n") #Poor Chile
 ```
 
 Q20. Young and old folks
