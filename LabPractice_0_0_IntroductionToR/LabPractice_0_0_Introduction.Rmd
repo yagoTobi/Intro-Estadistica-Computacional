@@ -1350,19 +1350,81 @@ Q20. Young and old folks
   Add the `age` variable to the `rio` data frame. variable  Who is the oldest athlete, and how old is he/she? Youngest athlete, and how old is he/she? In the case of ties, here, display all the relevant athletes. 
 
 ```{r q20a}
-# YOUR CODE GOES HERE
+
+rio <- na.omit(rio)
+
+# Extract year of birth
+rio$year_of_birth <- as.numeric(substr(rio$date_of_birth, 1, 4))
+
+# Calculate age
+rio$age <- 2016 - rio$year_of_birth
+
+# Find oldest and youngest athletes
+oldest_age <- max(rio$age)
+youngest_age <- min(rio$age)
+
+class(rio$age)
+
+# Find athletes with the oldest age
+oldest_athletes <- rio[rio$age == oldest_age, ]
+
+# Find athletes with the youngest age
+youngest_athletes <- rio[rio$age == youngest_age, ]
+
+# Print results
+cat("Oldest Athlete(s):\n")
+print(oldest_athletes)
+cat("\nYoungest Athlete(s):\n")
+print(youngest_athletes)
+
 ```
 
 **20b.** Answer the same questions as in the last part, but now only among athletes who won a medal.
 
 ```{r q20b}
-# YOUR CODE GOES HERE
+# Filter athletes who won a medal
+medal_winners <- rio[rowSums(rio[, c("gold", "silver", "bronze")]) > 0, ]
+
+# Extract year of birth
+medal_winners$year_of_birth <- as.numeric(substr(medal_winners$date_of_birth, 1, 4))
+
+# Calculate age
+medal_winners$age <- 2016 - medal_winners$year_of_birth
+
+# Find oldest and youngest athletes among medal winners
+oldest_age_medal <- max(medal_winners$age)
+youngest_age_medal <- min(medal_winners$age)
+
+# Find athletes with the oldest age among medal winners
+oldest_athletes_medal <- medal_winners[medal_winners$age == oldest_age_medal, ]
+
+# Find athletes with the youngest age among medal winners
+youngest_athletes_medal <- medal_winners[medal_winners$age == youngest_age_medal, ]
+
+# Print results
+cat("Oldest Athlete(s) among Medal Winners:\n")
+print(oldest_athletes_medal)
+cat("\nYoungest Athlete(s) among Medal Winners:\n")
+print(youngest_athletes_medal)
+
 ```
 
 **20c.** Using a single call to `tapply()`, answer: how old are the youngest and oldest athletes, for each sport? 
 
 ```{r q20c}
-# YOUR CODE GOES HERE
+# Define a function to find the youngest and oldest athlete ages
+find_youngest_oldest_age <- function(age_vector) {
+  youngest_age <- min(age_vector)
+  oldest_age <- max(age_vector)
+  return(c(youngest_age, oldest_age))
+}
+
+# Apply the function to find the youngest and oldest athlete ages for each sport
+age_summary <- tapply(rio$age, rio$sport, find_youngest_oldest_age)
+
+# Print the result
+print(age_summary)
+
 ```
 
 **20d.** You should see that your output from `tapply()` in the last part is a list, which is not particularly convenient. Convert this list into a matrix that has one row for each sport, and two columns that display the ages of the youngest and oldest athletes in that sport. The first 3 rows should look like this:
@@ -1375,13 +1437,42 @@ athletics               16     47
   You'll notice that we set the row names according to the sports, and we also set appropriate column names. Hint: `unlist()` will unravel all the values in a list; and `matrix()`, as you've seen before, can be used to create a matrix from a vector of values. After you've converted the results to a matrix, print it to the console (and make sure its first 3 rows match those displayed above).
   
 ```{r q20d}
-# YOUR CODE GOES HERE
+# Apply the function to find the youngest and oldest athlete ages for each sport
+age_summary <- tapply(rio$age, rio$sport, find_youngest_oldest_age)
+
+# Convert the list to a vector
+age_vector <- unlist(age_summary)
+
+# Reshape the vector into a matrix
+age_matrix <- matrix(age_vector, ncol = 2, byrow = TRUE)
+
+# Set row names to match sports
+rownames(age_matrix) <- names(age_summary)
+
+# Set column names
+colnames(age_matrix) <- c("Youngest", "Oldest")
+
+# Print the matrix
+print(age_matrix)
+
 ```
 
 **Challenge.** Determine the *names* of the youngest and oldest athletes in each sport, along with their ages (so your result should have 4 columns), without using any explicit iteration. In the case of ties, just return one relevant athlete name. (For this part, you can use another package, such as `plyr` or `dplyr` if you want to.)
 
 ```{r q20chal}
-# YOUR CODE GOES HERE
+library(dplyr)
+
+# Group the data by sport and summarize to find the youngest and oldest athlete
+age_summary <- rio %>%
+  group_by(sport) %>%
+  summarise(Youngest = min(age),
+            Youngest_Name = name[which.min(age)],
+            Oldest = max(age),
+            Oldest_Name = name[which.max(age)])
+
+# Print the result
+print(age_summary)
+
 ```
 
 Q21. Sport by sport
@@ -1390,25 +1481,111 @@ Q21. Sport by sport
 **21a.** Create a new data frame called `sports`, which we'll populate with information about each sporting event at the Summer Olympics. Initially, define `sports` to contain a single variable called `sport` which contains the names of the sporting events in alphabetical order. Then, add a column called `n_participants` which contains the number of participants in each sport. Use one of the apply functions to determine the number of gold medals given out for each sport, and add this as a column called `n_gold`. Using your newly created `sports` data frame, calculate the ratio of the number of gold medals to participants for each sport. Which sport has the highest ratio? Which has the lowest?
 
 ```{r q21a}
-# YOUR CODE GOES HERE
+# Create the initial sports data frame with sport names
+sports <- data.frame(sport = sort(unique(rio$sport)))
+
+# Add a column for the number of participants
+sports$n_participants <- sapply(sports$sport, function(s) sum(rio$sport == s))
+
+# Add a column for the number of gold medals
+sports$n_gold <- sapply(sports$sport, function(s) sum(rio$gold[rio$sport == s]))
+
+# Calculate the ratio of gold medals to participants
+sports$ratio_gold_to_participants <- ifelse(sports$n_participants != 0, 
+                                             sports$n_gold / sports$n_participants, 
+                                             0)
+
+# Find the sport with the highest and lowest ratio
+highest_ratio_sport <- sports$sport[which.max(sports$ratio_gold_to_participants)]
+lowest_ratio_sport <- sports$sport[which.min(sports$ratio_gold_to_participants)]
+
+# Print the results
+cat("Sport with the highest ratio of gold medals to participants:", highest_ratio_sport, "\n")
+cat("Sport with the lowest ratio of gold medals to participants:", lowest_ratio_sport, "\n")
+
+# View the sports data frame
+print(sports)
+
+
 ```
 
 **21b.** Use one of the apply functions to compute the average weight of the participants in each sport, and add this as a column to `sports` called `ave_weight`. Important: there are missing weights in the data set coded as `NA`, but your column `ave_weight` should ignore these, i.e., it should be itself free of `NA` values. You will have to pass an additional argument to your apply call in order to achieve this. Hint: look at the help file for the `mean()` function; what argument can you set to ignore `NA` values? Once computed, display the average weights along with corresponding sport names, in decreasing order of average weight.
 
 ```{r q21b}
-# YOUR CODE GOES HERE
+# Use tapply to compute the average weight of participants in each sport
+sports$ave_weight <- tapply(rio$weight, rio$sport, mean, na.rm = TRUE)
+
+# Sort sports data frame by average weight in decreasing order
+sports <- sports[order(-sports$ave_weight), ]
+
+# Display the average weights along with corresponding sport names
+print(sports[, c("sport", "ave_weight")])
+
 ```
 
 **21c.** As in the last part, compute the average weight of athletes in each sport, but now separately for men and women. You should therefore add two new columns, called `ave_weight_men` and `ave_weight_women`, to `sports`. Once computed, display the average weights along with corresponding sports, for men and women, each list sorted in decreasing order of average weight. Are the orderings roughly similar?
 
 ```{r q21c}
-# YOUR CODE GOES HERE
+# Check if there are male athletes in the dataset
+if (any(rio$sex == "male")) {
+  # Use tapply to compute the average weight of male participants in each sport
+  sports$ave_weight_men <- tapply(rio$weight[rio$sex == "male"], rio$sport[rio$sex == "male"], mean, na.rm = TRUE)
+} else {
+  # If no male athletes are found, set ave_weight_men to NA for all sports
+  sports$ave_weight_men <- rep(NA, nrow(sports))
+}
+
+# Check if there are female athletes in the dataset
+if (any(rio$sex == "female")) {
+  # Use tapply to compute the average weight of female participants in each sport
+  sports$ave_weight_women <- tapply(rio$weight[rio$sex == "female"], rio$sport[rio$sex == "female"], mean, na.rm = TRUE)
+} else {
+  # If no female athletes are found, set ave_weight_women to NA for all sports
+  sports$ave_weight_women <- rep(NA, nrow(sports))
+}
+
+# Sort sports data frame by average weight for men in decreasing order
+sports_men <- sports[order(-sports$ave_weight_men), ]
+
+# Sort sports data frame by average weight for women in decreasing order
+sports_women <- sports[order(-sports$ave_weight_women), ]
+
+# Display the average weights along with corresponding sports for men and women
+cat("Average Weights for Men:\n")
+print(sports_men[, c("sport", "ave_weight_men")])
+
+cat("\nAverage Weights for Women:\n")
+print(sports_women[, c("sport", "ave_weight_women")])
+
+
+
 ```
 
 **Challenge.** Use one of the apply functions to compute the proportion of women among participating athletes in each sport. Use these proportions to recompute the average weight (over all athletes in each sport) from the `ave_weight_men` and `average_weight_women` columns, and define a new column `ave_weight2` accordingly. Does `ave_weight2` differ from `ave_weight`? It should. Explain why. Then show how to recompute the average weight from `ave_weight_men` and `average_weight_women` in a way that exactly recreates `average_weight`.
 
 ```{r q21chal}
-# YOUR CODE GOES HERE
+# Compute the proportion of women among participating athletes in each sport
+proportion_women <- tapply(rio$sex, rio$sport, function(sex) sum(sex == "female") / length(sex))
+
+
+# Recompute the average weight using proportions of men and women
+sports$ave_weight2 <- sports$ave_weight_men * (1 - proportion_women) + sports$ave_weight_women * proportion_women
+
+# Compare ave_weight2 with ave_weight
+print("Comparison of ave_weight and ave_weight2:")
+print(head(cbind(sports$ave_weight, sports$ave_weight2)))
+
+# Explanation of differences between ave_weight2 and ave_weight
+cat("\nExplanation of differences:")
+cat("\nave_weight2 differs from ave_weight because it takes into account the proportion of women among participating athletes in each sport.")
+cat("\nave_weight2 is a weighted average of the average weights of men and women, where the weights are the proportions of men and women among participating athletes.")
+cat("\nOn the other hand, ave_weight only considers the average weights of men and women without taking into account the proportion of each gender among participating athletes.")
+
+# Recompute average weight from ave_weight_men and ave_weight_women to exactly recreate ave_weight
+# We can use the same formula as ave_weight2
+recomputed_ave_weight <- sports$ave_weight_men * (1 - proportion_women) + sports$ave_weight_women * proportion_women
+
+recomputed_ave_weight
 ```
 
 ### Hint #4. Huber loss function
