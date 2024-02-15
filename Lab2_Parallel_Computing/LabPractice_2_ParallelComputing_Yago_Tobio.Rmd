@@ -1,0 +1,193 @@
+---
+title: 'Lab 02: Parallel Computing'
+author: "Introduction to Statistical Computing"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r, include=FALSE}
+# A hook to wrap output based on a linewidth chunk option
+# From https://github.com/yihui/knitr-examples/blob/master/077-wrap-output.Rmd
+library(knitr)
+hook_output = knit_hooks$get('output')
+knit_hooks$set(output = function(x, options) {
+  # this hook is used only when the linewidth option is not NULL
+  if (!is.null(n <- options$linewidth)) {
+    x = knitr:::split_lines(x)
+    # any lines wider than n should be wrapped
+    if (any(nchar(x) > n)) x = strwrap(x, width = n)
+    x = paste(x, collapse = '\n')
+  }
+  hook_output(x, options)
+})
+opts_chunk$set(cache=TRUE, autodep=TRUE, cache.comments=TRUE, linewidth=79)
+```
+
+Name:  Yago Tobio Souto
+ICAI ID: 201802168
+Collaborated with:  
+
+This lab is to be done in class (completed outside of class time). You may collaborate with one classmate, but you must identify his/her name above, and you must submit **your own** lab as this completed .Rmd file. 
+
+Installing and loading packages 
+===
+
+In order to perform the exercise in this practice you should install and load the `doParallel` package. 
+
+```{r}
+# YOUR CODE GOES HERE
+library(doParallel)
+```
+
+Q1. Does parallelization worth it?
+===
+
+**1a.** First, let's check how many cores do you have in your computer. Create a new variable `no_cores` equal to the number of cores minus 1.
+
+```{r q1a}
+# YOUR CODE GOES HERE
+# Load the parallel package
+library(parallel)
+
+# Determine the number of cores
+num_cores <- detectCores()
+
+# Create no_cores variable
+no_cores <- num_cores - 1
+
+# Print the result
+print(no_cores)
+```
+
+**1b.** Register the cores and prepare the clusters using the `registerDoParallel()` and `makeCluster()` function. This will allow to parallelize code in the following code chunks.
+
+```{r q1b}
+# Determine the number of cores (assuming you've already calculated no_cores)
+num_cores <- detectCores()
+no_cores <- num_cores - 1
+
+# Create a cluster using makeCluster() based on the number of cores we want to use
+cl <- makeCluster(no_cores)
+
+# Register the cluster with registerDoParallel() so foreach knows to use it
+registerDoParallel(cl)
+```
+
+**1c.** Now, you have the following function which calculates the prime numbers from `1` to `n`. Use the `microbenchmark` package to check which is faster to calculate the prime numbers when n goes from 10 to 10000: `lapply`, a `for` loop, `parLapply` or a `foreach` loop. The `lapply` and the `for` loop have been written for you. Which function is faster?
+```{r q1c}
+library(parallel)
+library(doParallel)
+library(foreach)
+library(iterators) # For iteration in foreach
+library(microbenchmark)
+
+# Define the function to get prime numbers
+getPrimeNumbers <- function(n) {  
+  n <- as.integer(n)
+  if(n > 1e6) stop("n too large")
+  primes <- rep(TRUE, n)
+  primes[1] <- FALSE
+  last.prime <- 2L
+  for(i in last.prime:floor(sqrt(n))) {
+    primes[seq.int(2L*last.prime, n, last.prime)] <- FALSE
+    last.prime <- last.prime + min(which(primes[(last.prime+1):n]))
+  }
+  which(primes)
+}
+
+# lapply and for loop definitions as provided
+lapplyPrimeNumbers <- function(n_vec) {
+  result <- lapply(n_vec, getPrimeNumbers)  
+}
+
+forPrimeNumbers <- function(n_vec) {
+  result <- list()
+  for (n in n_vec) {
+    result[[as.character(n)]] <- getPrimeNumbers(n)
+  }
+}
+
+# Setting up parallel backend
+num_cores <- detectCores()
+no_cores <- num_cores - 1
+cl <- makeCluster(no_cores)
+clusterExport(cl, varlist = c("getPrimeNumbers"))
+registerDoParallel(cl)
+
+# parLapply implementation
+parLapplyPrimeNumbers <- function(n_vec) {
+  result <- parLapply(cl, n_vec, getPrimeNumbers)
+}
+
+# foreach implementation
+foreachPrimeNumbers <- function(n_vec) {
+  result <- foreach(n = iter(n_vec), .combine = 'c') %dopar% getPrimeNumbers(n)
+}
+
+# Benchmarking
+results <- microbenchmark(
+  lapply = lapplyPrimeNumbers(10:1000),
+  forLoop = forPrimeNumbers(10:1000),
+  parLapply = parLapplyPrimeNumbers(10:1000),
+  foreach = foreachPrimeNumbers(10:1000),
+  times = 10 # Adjust the number of times to ensure the benchmark is comprehensive
+)
+
+print(results)
+
+# Clean up: stop the cluster
+stopCluster(cl)
+```
+
+**Challenge 01.** Search around your computer for a sequential code that might be parallelized. Using the `doParallel` package, parallelize the code and calculate the speedup. If you cannot find any code to parallelize, use the following code:
+```{r q1ch1}
+library(doParallel)
+library(foreach)
+library(glmnet) # Assuming glmnet is needed for glm, adjust as necessary for your environment
+# Load necessary library for timing
+library(microbenchmark)
+
+# Detect the number of cores
+no_cores <- detectCores() - 1
+# Register the parallel backend
+registerDoParallel(no_cores)
+
+# Prepare the data
+x <- iris[which(iris[,5] != "setosa"), c(1,5)]
+trials <- seq(1, 10000)
+
+boot_fx <- function(trial) {
+  ind <- sample(100, 100, replace=TRUE)
+  result1 <- glm(x[ind,2]~x[ind,1], family=binomial(logit))
+  r <- coefficients(result1)
+  res <- rbind(data.frame(), r)
+}
+
+
+# Parallel version of the boot_fx function
+boot_fx_parallel <- function(trials) {
+  results <- foreach(trial=trials, .combine=rbind) %dopar% {
+    ind <- sample(100, 100, replace=TRUE)
+    result1 <- glm(x[ind,2]~x[ind,1], family=binomial(logit))
+    r <- coefficients(result1)
+    res <- rbind(data.frame(), r)
+  }
+  return(results)
+}
+
+# Benchmark the original function
+sequential_time <- microbenchmark(boot_fx(trials), times = 1)
+
+# Benchmark the parallel function
+parallel_time <- microbenchmark(boot_fx_parallel(trials), times = 1)
+
+# Print results
+print(sequential_time)
+print(parallel_time)
+
+# Calculate speedup
+speedup <- sequential_time$time / parallel_time$time
+print(paste("Speedup:", speedup))
+
+```
