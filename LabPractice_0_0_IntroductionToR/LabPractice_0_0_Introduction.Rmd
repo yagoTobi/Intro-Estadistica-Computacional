@@ -1100,7 +1100,24 @@ $$
 where $\bar{X}=\sum_{i=1}^n X_i/n$ is the sample mean of $X$, $s_X^2 = \sum_{i=1}^n (X_i-\bar{X})^2/(n-1)$ is the sample variance of $X$, and similarly for $\bar{Y}$ and $s_Y^2$. We will compute these t-statistics for all 9 variables in our data set, where $X$ will play the role of one of the variables for SVI patients, and $Y$ will play the role of this variable for non-SVI patients. Start by computing a vector of the denominators of the t-statistics, called `pros.dat.denom`, according to the formula above. Take advantage of vectorization; this calculation should require just a single line of code. Make sure not to include any hard constants (e.g., don't just manually write 21 here for $n$); as always, programmatically define all the relevant quantities. Then compute a vector of t-statistics for the 9 variables in our data set, called `pros.dat.t.stat`, according to the formula above, and using `pros.dat.denom`. Again, take advantage of vectorization; this calculation should require just a single line of code. Print out the t-statistics to the console. 
 
 ```{r q14a}
-# YOUR CODE GOES HERE
+# Calculate sample sizes
+n <- nrow(pros.dat.svi)
+m <- nrow(pros.dat.no.svi)
+
+mean_svi <- colMeans(pros.dat.svi)
+mean_non_svi <- colMeans(pros.dat.no.svi)
+
+var_svi <- pros.dat.svi.sd^2
+var_non_svi <- pros.dat.no.svi.sd^2
+
+# Compute the denominators of the t-statistics
+pros.dat.denom <- sqrt(var_svi / n + var_non_svi / m)
+
+# Compute the t-statistics
+pros.dat.t.stat <- (mean_svi - mean_non_svi) / pros.dat.denom
+
+# Print the t-statistics
+print(pros.dat.t.stat)
 ```
 
 **14b.** Given data $X$ and $Y$ and the t-statistic $T$ as defined the last question, the **degrees of freedom** associated with $T$ is:
@@ -1111,7 +1128,16 @@ $$
 Compute the degrees of freedom associated with each of our 9 t-statistics (from our 9 variables), storing the result in a vector called `pros.dat.df`. This might look like a complicated/ugly calculation, but really, it's not too bad: it only involves arithmetic operators, and taking advantage of vectorization, the calculation should only require a single line of code. Hint: to simplify this line of code, it will help to first set short variable names for variables/quantities you will be using, as in `sx = pros.dat.svi.sd`, `n = nrow(pros.dat.svi)`, and so on. Print out these degrees of freedom values to the console.
 
 ```{r q14b}
-# YOUR CODE GOES HERE
+sx2 <- pros.dat.svi.sd^2  # Variance for SVI group
+sy2 <- pros.dat.no.svi.sd^2  # Variance for non-SVI group
+n <- nrow(pros.dat.svi)
+m <- nrow(pros.dat.no.svi)
+
+pros.dat.df <- ((sx2 / n + sy2 / m)^2) / ((sx2 / n)^2 / (n - 1) + (sy2 / m)^2 / (m - 1))
+
+# Print the degrees of freedom
+print(pros.dat.df)
+
 ```
 
 **14c.** The function `pt()` evaluates the distribution function of the t-distribution. E.g.,
@@ -1123,7 +1149,21 @@ Compute the degrees of freedom associated with each of our 9 t-statistics (from 
     Call `pt()` as in the above line, but replace `x` by the absolute values of the t-statistics you computed for the 9 variables in our data set, and `v` by the degrees of freedom values associated with these t-statistics. Multiply the output by 2, and store it as a vector `pros.dat.p.val`. These are called **p-values** for the t-tests of mean difference between SVI and non-SVI patients, over the 9 variables in our data set. Print out the p-values to the console. Identify the variables for which the p-value is smaller than 0.05 (hence deemed to have a significant difference between SVI and non-SVI patients). Identify the variable with the smallest p-value (the most significant difference between SVI and non-SVI patients).
 
 ```{r q14c}
-# YOUR CODE GOES HERE
+pros.dat.p.val <- 2 * pt(abs(pros.dat.t.stat), df=pros.dat.df, lower.tail=FALSE)
+print(pros.dat.p.val)
+
+# Identify variables with p-value < 0.05
+significant_vars <- which(pros.dat.p.val < 0.05)
+
+# Print the indices of significant variables
+cat("Variables with significant differences:", significant_vars, "\n")
+
+# Identify the variable with the smallest p-value
+most_significant_var <- which.min(pros.dat.p.val)
+
+# Print the index of the most significant variable
+cat("Variable with the most significant difference:", most_significant_var)
+
 ```
 
 Q15. My plot is at your command (optional)
@@ -1132,13 +1172,82 @@ Q15. My plot is at your command (optional)
 **Challenge.** Use the last code block as starter code to complete the following task. In the body of a `repeat` loop, prompt the user for a variable name to plot, using `readline()`. Check if the string that you collect from the user is one of the column names in `pros.dat`. Hint: use the `%in%` operator. If the string is indeed one of the column names, produce a histogram of the corresponding variable, with a title and x-axis label set appropriately. If the string is "quit", then break out of the repeat loop. Otherwise, print to the console: "Oops! That's not a variable in my data set." In the Rmd code chunk for your solution code, *make sure to set `eval=FALSE`; otherwise your lab file will never finish knitting.* Try out your solution code by running it in your console.
 
 ```{r q15chal1, eval=FALSE}
-# YOUR CODE GOES HERE
+repeat {
+  var_name <- readline(prompt="Enter a variable name or 'quit' to exit: ")
+  
+  if (var_name == "quit") {
+    break
+  }
+  
+  # Ensure pros.dat is a dataframe
+  if (!is.data.frame(pros.dat)) {
+    pros.dat <- as.data.frame(pros.dat)
+  }
+  
+  if (var_name %in% colnames(pros.dat)) {
+    # Ensure the column is numeric
+    numeric_column <- as.numeric(pros.dat[, var_name])
+
+    if (!all(is.na(numeric_column))) {
+      hist(numeric_column, main=paste("Histogram of", var_name), xlab=var_name)
+    } else {
+      print(paste("The variable", var_name, "cannot be converted to numeric or contains non-numeric data."))
+    }
+  } else {
+    print("Oops! That's not a variable in my data set.")
+  }
+}
 ```
 
 **Challenge.** Extend your prompting code in the last question to allow for scatterplots as well as histograms, and any other options you deem interesting, that the user might want to specify.
 
 ```{r q15chal2}
-# YOUR CODE GOES HERE
+repeat {
+  # Ask for the plot type
+  plot_type <- readline(prompt="Enter the plot type ('histogram', 'scatterplot', or 'quit' to exit): ")
+  
+  if (plot_type == "quit") {
+    break
+  }
+  
+  # Ensure pros.dat is a dataframe
+  if (!is.data.frame(pros.dat)) {
+    pros.dat <- as.data.frame(pros.dat)
+  }
+  
+  if (plot_type == "histogram") {
+    var_name <- readline(prompt="Enter a variable name for the histogram: ")
+    
+    if (var_name %in% colnames(pros.dat)) {
+      numeric_column <- as.numeric(pros.dat[, var_name])
+      if (!all(is.na(numeric_column))) {
+        hist(numeric_column, main=paste("Histogram of", var_name), xlab=var_name)
+      } else {
+        print(paste("The variable", var_name, "cannot be converted to numeric or contains non-numeric data."))
+      }
+    } else {
+      print("Oops! That's not a variable in my data set.")
+    }
+  } else if (plot_type == "scatterplot") {
+    var_name_x <- readline(prompt="Enter the X variable name for the scatterplot: ")
+    var_name_y <- readline(prompt="Enter the Y variable name for the scatterplot: ")
+    
+    if (var_name_x %in% colnames(pros.dat) && var_name_y %in% colnames(pros.dat)) {
+      numeric_column_x <- as.numeric(pros.dat[, var_name_x])
+      numeric_column_y <- as.numeric(pros.dat[, var_name_y])
+      
+      if (!all(is.na(numeric_column_x)) && !all(is.na(numeric_column_y))) {
+        plot(numeric_column_x, numeric_column_y, main=paste("Scatterplot of", var_name_x, "vs.", var_name_y), xlab=var_name_x, ylab=var_name_y)
+      } else {
+        print("One or both specified variables cannot be converted to numeric or contain non-numeric data.")
+      }
+    } else {
+      print("Oops! One or both specified variables are not in my data set.")
+    }
+  } else {
+    print("Unsupported plot type. Please enter 'histogram' or 'scatterplot'.")
+  }
+}
 ```
 
 States data set
@@ -1156,13 +1265,16 @@ Q16. Basic data frame manipulations
 **16a.** Add a column to `state.df`, containing the state abbreviations that are stored in the built-in vector `state.abb`. Name this column `Abbr`. You can do this in (at least) two ways: by using a call to `data.frame()`, or by directly defining `state.df$Abbr`. Display the first 3 rows and all 11 columns of the new `state.df`.
 
 ```{r q16a}
-# YOUR CODE GOES HERE
+state.df <- data.frame(state.df, Abbr = state.abb)
+head(state.df, 3)
 ```
 
 **16b.** Remove the `Region` column from `state.df`. You can do this in (at least) two ways: by using negative indexing, or by directly setting `state.df$Region` to be `NULL`. Display the first 3 rows and all 10 columns of `state.df`.
 
 ```{r q16b}
-# YOUR CODE GOES HERE
+state.df <- state.df[, -which(colnames(state.df) == "Region")]
+head(state.df, 3)
+
 ```
 
 **17c.** Add two columns to `state.df`, containing the x and y coordinates (longitude and latitude, respectively) of the center of the states, that are stored in the (existing) list `state.center`. Hint: take a look at this list in the console, to see what its elements are named. Name these two columns `Center.x` and `Center.y`. Display the first 3 rows and all 12 columns of `state.df`.
