@@ -1717,7 +1717,15 @@ Q22. Some simple function tasks
 **22a.** Write a function `huber()` that takes as an input a number $x$, and returns the Huber value $\psi(x)$, as defined above. Hint: the body of a function is just a block of R code, e.g., in this code you can use `if()` and `else()` statements. Check that `huber(1)` returns 1, and `huber(4)` returns 7.
 
 ```{r q22a}
-# YOUR CODE GOES HERE
+huber <- function(x) {
+  if (abs(x) <= 1) {
+    return(x^2)
+  } else {
+    return(2 * abs(x) - 1)
+  }
+}
+huber(1) # Should return 1
+huber(4) # Should return 7
 ```
 
 **22b.** The Huber function can be modified so that the transition from quadratic to linear happens at an arbitrary cutoff value $a$, as in:
@@ -1730,30 +1738,66 @@ $$
 Starting with your solution code to the last question, update your `huber()` function so that it takes two arguments: $x$, a number at which to evaluate the loss, and $a$ a number representing the cutoff value. It should now return $\psi_a(x)$, as defined above. Check that `huber(3, 2)` returns 8, and `huber(3, 4)` returns 9.
 
 ```{r q22b}
-# YOUR CODE GOES HERE
+huber <- function(x, a) {
+  if (abs(x) <= a) {
+    return(x^2)
+  } else {
+    return(2 * a * abs(x) - a^2)
+  }
+}
+
+print(huber(3, 2))  # Should return 8
+print(huber(3, 4))  # Should return 9
 ```
 
 **22c.** Update your `huber()` function so that the default value of the cutoff $a$ is 1. Check that `huber(3)` returns 5. 
 ```{r q22c}
-# YOUR CODE GOES HERE
+huber <- function(x, a = 1) {
+  if (abs(x) <= a) {
+    return(x^2)
+  } else {
+    return(2 * a * abs(x) - a^2)
+  }
+}
+
+print(huber(3))
 ```
 
 **22d.** Check that `huber(a=1, x=3)` returns 5. Check that `huber(1, 3)` returns 1. Explain why these are different.
 
 ```{r q22d}
-# YOUR CODE GOES HERE
+# Check with named arguments
+print(huber(a=1, x=3))
+
+# Check with positional arguments
+print(huber(1, 3)) # first argument is x and the second one is a
 ```
 
 **22e.** Vectorize your `huber()` function, so that the first input can actually be a vector of numbers, and what is returned is a vector whose elements give the Huber evaluated at each of these numbers. Hint: you might try using `ifelse()`, if you haven't already, to vectorize nicely. Check that `huber(x=1:6, a=3)` returns the vector of numbers (1, 4, 9, 15, 21, 27).
 
 ```{r q22e}
-# YOUR CODE GOES HERE
+huber <- function(x, a = 1) {
+  ifelse(abs(x) <= a,
+         x^2,
+         2 * a * abs(x) - a^2)
+}
+
+# Test the vectorized function with the provided example
+print(huber(x=1:6, a=3))
 ```
 
 **Challenge.** Your instructor computed the Huber function values $\psi_a(x)$ over a bunch of different $x$ values, stored in `huber.vals` and `x.vals`, respectively. However, the cutoff $a$ was, let's say, lost. Using `huber.vals`, `x.vals`, and the definition of the Huber function, you should be able to figure out the cutoff value $a$, at least roughly. Estimate $a$ and explain how you got there. Hint: one way to estimate $a$ is to do so visually, using plotting tools; there are other ways too.
 
 ```{r q22chal}
-# YOUR CODE GOES HERE
+x.vals <- 1:6
+a <- 3
+huber.vals <- sapply(x.vals, function(x) huber(x, a))
+
+# Plot the Huber function values against the x values
+plot(x.vals, huber.vals, type = 'b', col = 'blue', xlab = 'x values', ylab = 'Huber values', main = 'Huber Function Plot')
+
+# Add a grid for easier visualization, to know 'a' just solve the equation  when x > a
+grid()
 ```
 
 Q23. Plotting practice, side effects 
@@ -1762,19 +1806,53 @@ Q23. Plotting practice, side effects
 **23a.** Professor Tibs created in plot of the Huber function displayed [here](http://www.stat.cmu.edu/~ryantibs/statcomp/labs/huber.png). Reproduce this plot with your own plotting code, and the `huber()` function you wrote above. The axes and title should be just the same, so should the Huber curve (in black), so should be the red dotted lines at the values -1 and 1, and so should the text "Linear", "Quadratic", "Linear". 
 
 ```{r q23a}
-# YOUR CODE GOES HERE
+# Assuming the huber function is defined as follows
+huber <- function(x, a = 1) {
+  ifelse(abs(x) <= a, x^2, 2 * a * abs(x) - a^2)
+}
+
+# Generate a sequence of x values
+x.vals <- seq(-4, 4, by = 0.01)
+
+# Calculate Huber values for these x values
+huber.vals <- sapply(x.vals, huber)
+
+# Plot the Huber function
+plot(x.vals, huber.vals, type = 'l', lwd = 2, xlab = "x", ylab = "Huber value", main = "Huber Function")
+abline(v = c(-1, 1), col = "red", lty = 2) # Add red dotted lines at x = -1 and x = 1
+text(x = c(-3, 0, 3), y = c(10, 0.5, 10), labels = c("Linear", "Quadratic", "Linear"), col = "red") # Add text
 ```
 
 **23b.** Modify the `huber()` function so that, as a side effect, it prints the string "Invented by the great Swiss statistician Peter Huber!" to the console. Hint: use `cat()`. Call your function on an input of your choosing, to demonstrate this side effect.
 
 ```{r q23b}
-# YOUR CODE GOES HERE
+huber <- function(x, a = 1) {
+  cat("Invented by the great Swiss statistician Peter Huber!\n") # Side effect: print message
+  ifelse(abs(x) <= a, x^2, 2 * a * abs(x) - a^2)
+}
+
+# Call the modified function to demonstrate the side effect
+huber_val <- huber(2) 
+print(huber_val)       # print the function's return value to see it
 ```
 
 **Challenge.** Further modify your `huber()` function so that, as another side effect, it produces a plot of Switzerland's national flag. Hint: look up this flag up on Google; it's pretty simple; and you should be able to recreate it with a few calls to `rect()`. Call your function on an input of your choosing, to demonstrate its side effects.
 
 ```{r q23chal}
-# YOUR CODE GOES HERE
+huber <- function(x, a = 1) {
+  cat("Invented by the great Swiss statistician Peter Huber!\n")
+  # Draw Switzerland's flag
+  plot(1, type="n", xlab="", ylab="", xlim=c(0, 1), ylim=c(0, 1), xaxt='n', yaxt='n', asp=1)
+  rect(0, 0, 1, 1, col="red") # Background
+  rect(0.35, 0.45, 0.65, 0.55, col="white") # Horizontal part of the cross
+  rect(0.45, 0.35, 0.55, 0.65, col="white") # Vertical part of the cross
+  
+  ifelse(abs(x) <= a, x^2, 2 * a * abs(x) - a^2)
+}
+
+# Call the modified function to demonstrate the side effects
+huber_val <- huber(2)
+print(huber_val)
 ```
 
 Q24. Exploring function environments
