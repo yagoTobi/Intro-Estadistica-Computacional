@@ -227,7 +227,19 @@ Store each of the results in a different vector and check that they are
 all identical.
 
 ```{r q3a}
-# YOUR CODE GOES HERE
+library(purrr)
+
+names1 <- map(got_chars, ~ .x$name) %>% unlist()
+
+names2 <- map_chr(got_chars, ~ .x$name)
+
+names3 <- map_chr(got_chars, `[[`, "name")
+
+names4 <- map_chr(got_chars, "name")
+
+identical(names1, names2) # Should return TRUE
+identical(names2, names3) # Should return TRUE
+identical(names3, names4) # Should return TRUE
 ```
 
 **3b.** Produce an integer vector that represents how many allegiances
@@ -237,7 +249,22 @@ object from the last question) to answer: which character holds the most
 allegiances? The least?
 
 ```{r q3b}
-# YOUR CODE GOES HERE
+# Create an integer vector of allegiances count
+allegiances_count <- map_int(got_chars, function(x) length(x$allegiances))
+
+# Print the result
+print(allegiances_count)
+
+# Extract the names and allegiances count into a data frame
+char_allegiances <- tibble(name = names_vector1, allegiances = allegiances_count)
+
+# Find the character with the most allegiances
+max_allegiances_char <- char_allegiances %>% filter(allegiances == max(allegiances))
+print(max_allegiances_char)
+
+# Find the character with the least allegiances
+min_allegiances_char <- char_allegiances %>% filter(allegiances == min(allegiances))
+print(min_allegiances_char)
 ```
 
 **3c.** Run the code below in your console. What does it do?
@@ -253,7 +280,7 @@ character, stored in `got_chars[[1]]`, has appeared in each of the 6 TV
 seasons. Print the result to the console.
 
 ```{r q3c}
-# YOUR CODE GOES HERE
+print(1:6 %in% got_chars[[1]]$alive)
 ```
 
 **3d.** Run the two lines of code below in their console. What do they
@@ -274,7 +301,17 @@ position (i,j) if character i was in season j, and `FALSE` otherwise.
 Print the first 6 rows of the result to the console.
 
 ```{r q3d}
-# YOUR CODE GOES HERE
+library(purrr)
+
+appear_in_season <- function(character) {
+    sapply(1:6, function(season) season %in% character$alive)
+}
+
+season_matrix <- map(got_chars, appear_in_season)
+
+season_matrix <- do.call(rbind, season_matrix)
+
+print(season_matrix[1:6, ])
 ```
 
 **Challenge.** Repeat the same task as in the last question, but using
@@ -283,7 +320,22 @@ Print the first 6 rows of the result to the console.
 Hint: `map_dfr()` will throw an error if it can't infer column names.
 
 ```{r q3chal}
-# YOUR CODE GOES HERE
+library(purrr)
+library(dplyr)
+
+appear_in_season_df <- function(character) {
+    data.frame(season1 = 1 %in% character$alive,
+               season2 = 2 %in% character$alive,
+               season3 = 3 %in% character$alive,
+               season4 = 4 %in% character$alive,
+               season5 = 5 %in% character$alive,
+               season6 = 6 %in% character$alive)
+}
+
+# Use map_df to apply this function to each character and combine the results into a data frame
+season_df <- map_df(got_chars, appear_in_season_df)
+
+print(season_df[1:6, ])
 ```
 
 # Q4. Cultural studies
@@ -294,7 +346,22 @@ birth date, death date, gender, and culture. Store it as `got_df` and
 print the last 3 rows to the console.
 
 ```{r q4a}
-# YOUR CODE GOES HERE
+library(purrr)
+
+extract_info <- function(character) {
+    data.frame(
+        name = character$name,
+        birth_date = character$born,
+        death_date = character$died,
+        gender = character$gender,
+        culture = character$culture
+    )
+}
+
+# Use map_dfr to apply this function to each character and combine the results into a data frame
+got_df <- map_dfr(got_chars, extract_info)
+
+print(got_df[(nrow(got_df)-2):nrow(got_df), ])
 ```
 
 **4b.** Using `got_df`, show that you can compute whether each character
@@ -303,7 +370,18 @@ demonstrating that the two ways of checking whether each character is
 alive lead to equal results.
 
 ```{r q4b}
-# YOUR CODE GOES HERE
+library(purrr)
+library(dplyr)
+
+# Step 1: Compute alive status from got_df
+is_alive_df <- is.na(got_df$died)
+
+# Step 2: Compute alive status from got_chars
+is_alive_chars <- map_lgl(got_chars, function(character) is.na(character$died))
+
+# Step 3: Compare the two vectors
+comparison <- is_alive_df == is_alive_chars
+print(comparison)
 ```
 
 **4c.** Using `filter()`, print the subset of the rows of `got_df` that
@@ -311,7 +389,15 @@ correspond to Ironborn characters. Then print the subset that correspond
 to female Northmen.
 
 ```{r q4c}
-# YOUR CODE GOES HERE
+library(dplyr)
+
+# Filter for Ironborn characters
+ironborn <- filter(got_df, culture == "Ironborn")
+print(ironborn)
+
+# Filter for female Northmen
+female_northmen <- filter(got_df, culture == "Northmen" & gender == "Female")
+print(female_northmen)
 ```
 
 **4d.** Create a matrix of dimension (number of cultures) x 2 that
@@ -320,7 +406,10 @@ counts how many women and men there are in each culture appearing in
 pass `table()` two arguments?
 
 ```{r q4d}
-# YOUR CODE GOES HERE
+# Create a contingency table for gender within each culture
+gender_culture_matrix <- table(got_df$culture, got_df$gender)
+
+print(gender_culture_matrix)
 ```
 
 **4e.** Using `group_by()` and `summarize()` on `got_df`, compute how
@@ -328,7 +417,20 @@ many characters in each culture have died. Which culture---aside from
 the unknown category represented by ""---has the most deaths?
 
 ```{r q4e}
-# YOUR CODE GOES HERE
+library(dplyr)
+
+# Compute the number of deceased characters in each culture
+deaths_by_culture <- got_df %>%
+  group_by(culture) %>%
+  summarize(deaths = sum(!is.na(death_date), na.rm = TRUE)) %>%
+  filter(culture != "")  # Exclude unknown category represented by ""
+print(deaths_by_culture)
+
+# Find the culture with the most deaths
+most_deaths_culture <- deaths_by_culture %>%
+  filter(deaths == max(deaths))
+
+print(most_deaths_culture)
 ```
 
 # Rio Olympics data set
