@@ -4,6 +4,9 @@ author: "Introduction to Statistical Computing"
 output:
   pdf_document: default
   html_document: default
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r, include=FALSE}
@@ -24,24 +27,37 @@ knit_hooks$set(output = function(x, options) {
 opts_chunk$set(cache=TRUE, autodep=TRUE, cache.comments=TRUE, linewidth=79)
 ```
 
-Name:  
-ICAI ID:  
-Collaborated with:  
+Name: **Equipo 1**
 
-This lab is to be done in class (completed outside of class time). You may collaborate with one classmate, but you must identify his/her name above, and you must submit **your own** lab as this completed .Rmd file. 
+ICAI ID: **201802168, 201810661, 201904136, 201910180**
 
-Installing and loading packages 
-===
+Collaborated with: **Yago Tobio, Luis Bueno, Victor Ovejero, Jesús
+López**
 
-Below we install `tidyverse` which gives us the packages we need (`purrr` and `dplyr`) needed to complete this lab. We also install the `repurrrsive` package which has the Game of Thrones data set that we'll use for the first couple of questions. Since this may be the first time installing packages for some of you, we'll show you how. If you already have these packages installed, then you can of course skip this part. Note: *do not remove `eval=FALSE` from the above code chunk*, just run the lines below in your console. You can also select "Tools" --> "Install Packages" from the RStudio menu. 
+This lab is to be done in class (completed outside of class time). You
+may collaborate with one classmate, but you must identify his/her name
+above, and you must submit **your own** lab as this completed .Rmd file.
+
+# Installing and loading packages
+
+Below we install `tidyverse` which gives us the packages we need
+(`purrr` and `dplyr`) needed to complete this lab. We also install the
+`repurrrsive` package which has the Game of Thrones data set that we'll
+use for the first couple of questions. Since this may be the first time
+installing packages for some of you, we'll show you how. If you already
+have these packages installed, then you can of course skip this part.
+Note: *do not remove `eval=FALSE` from the above code chunk*, just run
+the lines below in your console. You can also select "Tools" --\>
+"Install Packages" from the RStudio menu.
 
 ```{r, eval=FALSE}
 install.packages("tidyverse")
 install.packages("repurrrsive")
 ```
 
-Now we'll load the packages we need. Note: the code chunk below will cause errors if you try to knit this file without installing the packages first.
-
+Now we'll load the packages we need. Note: the code chunk below will
+cause errors if you try to knit this file without installing the
+packages first.
 
 ```{r, warning = FALSE}
 library(purrr)
@@ -50,12 +66,12 @@ library(tidyr)
 library(repurrrsive)
 ```
 
-Q1. Pipes to base R
-===
+# Q1. Pipes to base R
 
-For each of the following code blocks, which are written with pipes, write equivalent code in base R (to do the same thing).
+For each of the following code blocks, which are written with pipes,
+write equivalent code in base R (to do the same thing).
 
-**1a.** 
+**1a.**
 
 ```{r}
 letters %>%
@@ -64,10 +80,10 @@ letters %>%
 ```
 
 ```{r q1a}
-# YOUR CODE GOES HERE
+paste(toupper(letters), collapse = '+')
 ```
 
-**1b.** 
+**1b.**
 
 ```{r}
 "     Ceci n'est pas une pipe     " %>% 
@@ -76,7 +92,7 @@ letters %>%
 ```
 
 ```{r q1b}
-# YOUR CODE GOES HERE
+trimws(gsub("une", "un", "     Ceci n'est pas une pipe     "))
 ```
 
 **1c.**
@@ -87,10 +103,10 @@ rnorm(1000) %>%
 ```
 
 ```{r q1c}
-# YOUR CODE GOES HERE
+hist(rnorm(1000), breaks = 30, main = "N(0,1) draws", col = "pink", prob = TRUE)
 ```
 
-**1d.** 
+**1d.**
 
 ```{r}
 rnorm(1000) %>% 
@@ -100,35 +116,46 @@ rnorm(1000) %>%
 ```
 
 ```{r q1d}
-# YOUR CODE GOES HERE
+max(hist(rnorm(1000), breaks = 30, plot = FALSE)$density)
 ```
 
-Q2. Base R to pipes
-===
+# Q2. Base R to pipes
 
-For each of the following code blocks, which are written in base R, write equivalent code with pipes (to do the same thing).
+For each of the following code blocks, which are written in base R,
+write equivalent code with pipes (to do the same thing).
 
-**2a.** Hint: you'll have to use the dot `.`, as seen above in Q1b, or in the lecture notes.
+**2a.** Hint: you'll have to use the dot `.`, as seen above in Q1b, or
+in the lecture notes.
 
 ```{r}
 paste("Your grade is", sample(c("A","B","C","D","R"), size=1))
 ```
 
 ```{r q2a}
-# YOUR CODE GOES HERE
+sample(c("A", "B", "C", "D", "R"), size = 1) %>%
+  paste("Your grade is", .)
 ```
 
-**2b.** Hint: you can use the dot `.` again, in order to index `state.name` directly in the last pipe command.
+**2b.** Hint: you can use the dot `.` again, in order to index
+`state.name` directly in the last pipe command.
 
 ```{r}
 state.name[which.max(state.x77[,"Illiteracy"])] 
 ```
 
 ```{r 2qb}
-# YOUR CODE GOES HERE
+state_illiteracy <- tibble(StateName = state.name, Illiteracy = state.x77[,"Illiteracy"]) %>%
+  arrange(-Illiteracy) %>%
+  head(1) %>%
+  pull(StateName)
+
+print(state_illiteracy)
 ```
 
-**2c.** Note: `str.url` is defined for use in this and the next question; you can simply refer to it in your solution code (it is not part of the code you have to convert to pipes).
+**2c.** Note: `str.url` is defined for use in this and the next
+question; you can simply refer to it in your solution code (it is not
+part of the code you have to convert to pipes).
+
 ```{r}
 str.url = "http://www.stat.cmu.edu/~ryantibs/statcomp/data/king.txt"
 
@@ -141,10 +168,23 @@ head(wordtab, 10)
 ```
 
 ```{r q2c}
-# YOUR CODE GOES HERE
+str.url <- "http://www.stat.cmu.edu/~ryantibs/statcomp/data/king.txt"
+
+wordtab <- str.url %>%
+  readLines() %>%
+  paste(collapse = " ") %>%
+  strsplit(split = "[[:space:]]|[[:punct:]]") %>%
+  `[[`(1) %>%
+  table() %>%
+  sort(decreasing = TRUE)
+
+head(wordtab, 10)
 ```
 
-**2d.** Hint: the only difference between this and the last part is the line `words = words[words != ""]`. This is a bit tricky line to do with pipes: use the dot `.`, once more, and manipulate it as if were a variable name.
+**2d.** Hint: the only difference between this and the last part is the
+line `words = words[words != ""]`. This is a bit tricky line to do with
+pipes: use the dot `.`, once more, and manipulate it as if were a
+variable name.
 
 ```{r}
 lines = readLines(str.url)
@@ -157,165 +197,247 @@ head(wordtab, 10)
 ```
 
 ```{r q2d}
-# YOUR CODE GOES HERE
+wordtab <- str.url %>%
+  readLines() %>%
+  paste(collapse = " ") %>%
+  strsplit(split = "[[:space:]]|[[:punct:]]") %>%
+  pluck(1) %>%
+  discard(~ . == "") %>%
+  table() %>%
+  sort(decreasing = TRUE)
+
+head(wordtab, 10)
 ```
 
-Q3. Warming up with map 
-===
+# Q3. Warming up with map
 
-**3a.** Using the map functions from the `purrr` package, extract the names of the characters in `got_chars` so that you produce a character vector of length 30. Do this four different ways:
-      (i) using `map()`, defining a custom function on-the-fly, and casting the resulting list into an appropriate data structure; 
-      (ii) using one of the `map_***()` functions, but still defining a custom function on-the-fly; 
-      (iii) using one of the `map_***()` functions, and using one of `` `[`() `` or `` `[[`() `` functions, as well as an additional argument;
-      (iv) using one of the `map_***()` functions, and passing a string instead of a function (relying on its ability to define an appropriate extractor accordingly). 
-   
-   Store each of the results in a different vector and check that they are all identical.
-      
+**3a.** Using the map functions from the `purrr` package, extract the
+names of the characters in `got_chars` so that you produce a character
+vector of length 30. Do this four different ways: (i) using `map()`,
+defining a custom function on-the-fly, and casting the resulting list
+into an appropriate data structure; (ii) using one of the `map_***()`
+functions, but still defining a custom function on-the-fly; (iii) using
+one of the `map_***()` functions, and using one of `` `[`() `` or
+`` `[[`() `` functions, as well as an additional argument; (iv) using
+one of the `map_***()` functions, and passing a string instead of a
+function (relying on its ability to define an appropriate extractor
+accordingly).
+
+Store each of the results in a different vector and check that they are
+all identical.
+
 ```{r q3a}
 # YOUR CODE GOES HERE
 ```
 
-**3b.** Produce an integer vector that represents how many allegiances each character holds. Do this with whichever map function you'd like, and print the result to the console. Then use this (and your a saved object from the last question) to answer: which character holds the most allegiances? The least?
+**3b.** Produce an integer vector that represents how many allegiances
+each character holds. Do this with whichever map function you'd like,
+and print the result to the console. Then use this (and your a saved
+object from the last question) to answer: which character holds the most
+allegiances? The least?
 
 ```{r q3b}
 # YOUR CODE GOES HERE
 ```
 
 **3c.** Run the code below in your console. What does it do?
+
 ```{r, eval=FALSE}
 1:5 %in% 3:6
 ```
-Using the logic you can infer about the `%in%` operator (you can also read its help file), craft a single line of code to compute a Boolean vector of length 6 that checks whether the first Game of Thrones character, stored in `got_chars[[1]]`, has appeared in each of the 6 TV seasons. Print the result to the console.
-    
+
+Using the logic you can infer about the `%in%` operator (you can also
+read its help file), craft a single line of code to compute a Boolean
+vector of length 6 that checks whether the first Game of Thrones
+character, stored in `got_chars[[1]]`, has appeared in each of the 6 TV
+seasons. Print the result to the console.
+
 ```{r q3c}
 # YOUR CODE GOES HERE
 ```
-    
-**3d.** Run the two lines of code below in their console. What do they do?
+
+**3d.** Run the two lines of code below in their console. What do they
+do?
+
 ```{r, eval=FALSE}
 rbind(1:5, 6:10, 11:15)
 do.call(rbind, list(1:5, 6:10, 11:15))
 ```
-Using the logic you can infer about the `do.call()` function (you can also read its help file), as well as the logic from the last question, complete the following task. Using `map()`, a custom-defined function, as well as some post-processing of its results, produce a matrix that has dimension 30 x 6, with each column representing a TV season, and each row a character. The matrix should have a value of `TRUE`  in position (i,j) if character i was in season j, and `FALSE` otherwise. Print the first 6 rows of the result to the console.
+
+Using the logic you can infer about the `do.call()` function (you can
+also read its help file), as well as the logic from the last question,
+complete the following task. Using `map()`, a custom-defined function,
+as well as some post-processing of its results, produce a matrix that
+has dimension 30 x 6, with each column representing a TV season, and
+each row a character. The matrix should have a value of `TRUE` in
+position (i,j) if character i was in season j, and `FALSE` otherwise.
+Print the first 6 rows of the result to the console.
 
 ```{r q3d}
 # YOUR CODE GOES HERE
 ```
 
-**Challenge.** Repeat the same task as in the last question, but using `map_df()` and no post-processing. The result will now be a data frame (not a matrix). Print the first 6 rows of the result to the console. Hint: `map_dfr()` will throw an error if it can't infer column names.
+**Challenge.** Repeat the same task as in the last question, but using
+`map_df()` and no post-processing. The result will now be a data frame
+(not a matrix). Print the first 6 rows of the result to the console.
+Hint: `map_dfr()` will throw an error if it can't infer column names.
 
 ```{r q3chal}
 # YOUR CODE GOES HERE
 ```
 
-Q4. Cultural studies
-===
+# Q4. Cultural studies
 
-**4a.** Using `map_dfr()`, create a data frame of dimension 30 x 5, whose columns represent, for each Game of Thrones character, their name, birth date, death date, gender, and culture. Store it as `got_df` and print the last 3 rows to the console.
+**4a.** Using `map_dfr()`, create a data frame of dimension 30 x 5,
+whose columns represent, for each Game of Thrones character, their name,
+birth date, death date, gender, and culture. Store it as `got_df` and
+print the last 3 rows to the console.
 
 ```{r q4a}
 # YOUR CODE GOES HERE
 ```
 
-**4b.** Using `got_df`, show that you can compute whether each character is alive or not, and compare this to what is stored in `got_chars`, demonstrating that the two ways of checking whether each character is alive lead to equal results.
+**4b.** Using `got_df`, show that you can compute whether each character
+is alive or not, and compare this to what is stored in `got_chars`,
+demonstrating that the two ways of checking whether each character is
+alive lead to equal results.
 
 ```{r q4b}
 # YOUR CODE GOES HERE
 ```
 
-**4c.** Using `filter()`, print the subset of the rows of `got_df` that correspond to Ironborn characters. Then print the subset that correspond to female Northmen. 
+**4c.** Using `filter()`, print the subset of the rows of `got_df` that
+correspond to Ironborn characters. Then print the subset that correspond
+to female Northmen.
 
 ```{r q4c}
 # YOUR CODE GOES HERE
 ```
 
-**4d.** Create a matrix of dimension (number of cultures) x 2 that counts how many women and men there are in each culture appearing in `got_df`. Print the results to the console. Hint: what happens if you pass `table()` two arguments?
+**4d.** Create a matrix of dimension (number of cultures) x 2 that
+counts how many women and men there are in each culture appearing in
+`got_df`. Print the results to the console. Hint: what happens if you
+pass `table()` two arguments?
 
 ```{r q4d}
 # YOUR CODE GOES HERE
 ```
 
-**4e.** Using `group_by()` and `summarize()` on `got_df`, compute how many characters in each culture have died. Which culture---aside from the unknown category represented by ""---has the most deaths?
+**4e.** Using `group_by()` and `summarize()` on `got_df`, compute how
+many characters in each culture have died. Which culture---aside from
+the unknown category represented by ""---has the most deaths?
 
 ```{r q4e}
 # YOUR CODE GOES HERE
 ```
 
-Rio Olympics data set
-===
+# Rio Olympics data set
 
-This is data set from the Rio Olympics data set that we saw in Lab 3. In the next question, we're going to repeat some calculations from Lab 3 but using `dplyr`.
+This is data set from the Rio Olympics data set that we saw in Lab 3. In
+the next question, we're going to repeat some calculations from Lab 3
+but using `dplyr`.
 
 ```{r}
 rio = read.csv("http://www.stat.cmu.edu/~ryantibs/statcomp/data/rio.csv")
 ```
 
-Q5. Practice with grouping and summarizing
-===
+# Q5. Practice with grouping and summarizing
 
-**5a.** Using `group_by()` and `summarize()`, compute how many athletes competed for each country in the `rio` data frame? Print the results for the first 10 countries to the console. Building off your here answer, use an additional call to `filter()` to compute which country had the most number of athletes and how many that was. Hint: consider using `n()` from the `dplyr` package for the first part here.
+**5a.** Using `group_by()` and `summarize()`, compute how many athletes
+competed for each country in the `rio` data frame? Print the results for
+the first 10 countries to the console. Building off your here answer,
+use an additional call to `filter()` to compute which country had the
+most number of athletes and how many that was. Hint: consider using
+`n()` from the `dplyr` package for the first part here.
 
 ```{r q5a}
 # YOUR CODE GOES HERE
 ```
 
-**5b.** Using `group_by()`, `summarize()`, and `filter()`, compute which country had the most numnber of total medals and many that was. 
+**5b.** Using `group_by()`, `summarize()`, and `filter()`, compute which
+country had the most numnber of total medals and many that was.
 
 ```{r q5b}
 # YOUR CODE GOES HERE
 ```
 
-**5c.** Using `group_by()`, `summarize()`, and `filter()`, compute which country---among those with zero total medals---had the most number of athletes. Hint: you will need to modify your `summarize()` command to compute the number of athletes; and you might need two calls to `filter()`.
+**5c.** Using `group_by()`, `summarize()`, and `filter()`, compute which
+country---among those with zero total medals---had the most number of
+athletes. Hint: you will need to modify your `summarize()` command to
+compute the number of athletes; and you might need two calls to
+`filter()`.
 
 ```{r q5c}
 # YOUR CODE GOES HERE
 ```
 
-**5d.** Using---yes, you guessed it---`group_by()`, `summarize()`, and `filter()`, compute the average weight of athletes in each sport, separately for men and women, and report the two sport with the highest average weights (one for each of men and women). Hint: `group_by()` can accept more than one grouping variable. Also, consider using `na.rm=TRUE` as an additional argument to certain arithmetic summary functions so that they will not be thrown off by `NA` or `NaN` values.
+**5d.** Using---yes, you guessed it---`group_by()`, `summarize()`, and
+`filter()`, compute the average weight of athletes in each sport,
+separately for men and women, and report the two sport with the highest
+average weights (one for each of men and women). Hint: `group_by()` can
+accept more than one grouping variable. Also, consider using
+`na.rm=TRUE` as an additional argument to certain arithmetic summary
+functions so that they will not be thrown off by `NA` or `NaN` values.
 
 ```{r q5d}
 # YOUR CODE GOES HERE
 ```
 
-Fastest 100m sprint times
-===
+# Fastest 100m sprint times
 
-Below, we read two data sets of the 1000 fastest times ever recorded for the 100m sprint, in men's and women's track. We scraped this data from http://www.alltime-athletics.com/m_100ok.htm and http://www.alltime-athletics.com/w_100ok.htm, in early September 2021. (Interestingly, the 2nd, 3rd, 4th, 7th, and 8th fastest women's times were all set at the most recent Tokyo Olympics, or after! Meanwhile, the top 10 men's times are all from about a decade ago.)
+Below, we read two data sets of the 1000 fastest times ever recorded for
+the 100m sprint, in men's and women's track. We scraped this data from
+<http://www.alltime-athletics.com/m_100ok.htm> and
+<http://www.alltime-athletics.com/w_100ok.htm>, in early September 2021.
+(Interestingly, the 2nd, 3rd, 4th, 7th, and 8th fastest women's times
+were all set at the most recent Tokyo Olympics, or after! Meanwhile, the
+top 10 men's times are all from about a decade ago.)
 
-Prostate cancer data set
-===
+# Prostate cancer data set
 
-Below we read in the prostate cancer data set, as visited in previous labs. 
+Below we read in the prostate cancer data set, as visited in previous
+labs.
 
 ```{r}
 pros.df = 
   read.table("http://www.stat.cmu.edu/~ryantibs/statcomp/data/pros.dat")
 ```
 
-Q6. Practice with `dplyr` verbs
-===
+# Q6. Practice with `dplyr` verbs
 
-In the following, use pipes and `dplyr` verbs to answer questions on `pros.df`.
+In the following, use pipes and `dplyr` verbs to answer questions on
+`pros.df`.
 
-**6a.** Among the men whose `lcp` value is equal to the minimum value (across the entire data set), report the range (min and max) of `lpsa`. 
+**6a.** Among the men whose `lcp` value is equal to the minimum value
+(across the entire data set), report the range (min and max) of `lpsa`.
 
 ```{r q6a}
 # YOUR CODE GOES HERE
 ```
 
-**6b.** Order the rows by decreasing `age`, then display the rows from men who are older than 70 and without SVI. 
+**6b.** Order the rows by decreasing `age`, then display the rows from
+men who are older than 70 and without SVI.
 
 ```{r q6b}
 # YOUR CODE GOES HERE
 ```
 
-**6c.** Order the rows by decreasing `age`, then decreasing `lpsa` score, and display the rows from men who are older than 70 and without SVI, but only the `age`, `lpsa`, `lcavol`, and `lweight` columns. Hint: `arrange()` can take two arguments, and the order you pass in them specifies the priority. 
+**6c.** Order the rows by decreasing `age`, then decreasing `lpsa`
+score, and display the rows from men who are older than 70 and without
+SVI, but only the `age`, `lpsa`, `lcavol`, and `lweight` columns. Hint:
+`arrange()` can take two arguments, and the order you pass in them
+specifies the priority.
 
 ```{r q6c}
 # YOUR CODE GOES HERE
 ```
 
-**6d.** We're going to resolve Q2c from Lab 3 using the tidyverse. Using `purrr` and `dplyr`, perform t-tests for each variable in the data set, between SVI and non-SVI groups. To be precise, you will perform a t-test for each column excluding the SVI variable itself, by running the function `t.test.by.ind()` below (which is just as in Q2c in Lab 3). Print the returned t-test objects out to the console.
+**6d.** We're going to resolve Q2c from Lab 3 using the tidyverse. Using
+`purrr` and `dplyr`, perform t-tests for each variable in the data set,
+between SVI and non-SVI groups. To be precise, you will perform a t-test
+for each column excluding the SVI variable itself, by running the
+function `t.test.by.ind()` below (which is just as in Q2c in Lab 3).
+Print the returned t-test objects out to the console.
 
 ```{r}
 t.test.by.ind = function(x, ind) {
@@ -328,7 +450,9 @@ t.test.by.ind = function(x, ind) {
 # YOUR CODE GOES HERE
 ```
 
-**6e.** Extend your code from the last part (append just one more line of code, glued together by a pipe) to extract the p-values from each of the returned t-test objects, and print them out to the console.
+**6e.** Extend your code from the last part (append just one more line
+of code, glued together by a pipe) to extract the p-values from each of
+the returned t-test objects, and print them out to the console.
 
 ```{r q6e}
 # YOUR CODE GOES HERE
@@ -343,132 +467,204 @@ sprint.w.df = read.table(
   sep="\t", quote="", header=TRUE)
 ```
 
-Q7 - More practice with data frame computations 
-===
+# Q7 - More practice with data frame computations
 
-**7a.** Confirm that both `sprint.m.df` and `sprint.w.df` are data frames. Delete the `Rank` column from each data frame, then display the first and last 3 rows of each. 
+**7a.** Confirm that both `sprint.m.df` and `sprint.w.df` are data
+frames. Delete the `Rank` column from each data frame, then display the
+first and last 3 rows of each.
 
 ```{r q7a}
 # YOUR CODE GOES HERE
 ```
 
-**7b.** Recompute the ranks for the men's data set from the `Time` column and add them back as a `Rank` column to `sprint.m.df`. Do the same for the women's data set. After adding back the rank columns, print out the first 10 rows of each data frame, but only the `Time`, `Name`, `Date`, and `Rank` columns. Hint: consider using `rank()`.
+**7b.** Recompute the ranks for the men's data set from the `Time`
+column and add them back as a `Rank` column to `sprint.m.df`. Do the
+same for the women's data set. After adding back the rank columns, print
+out the first 10 rows of each data frame, but only the `Time`, `Name`,
+`Date`, and `Rank` columns. Hint: consider using `rank()`.
 
 ```{r q7b}
 # YOUR CODE GOES HERE
 ```
 
-**7c.** Using base R functions, compute, for each country, the number of sprint times from this country that appear in the men's data set. Call the result `sprint.m.counts`. Do the same for the women's data set, and call the result `sprint.w.counts`. What are the 5 most represented countries, for the men, and for the women? (Interesting side note: go look up the population of Jamaica, compared to that of the US. Pretty impressive, eh?) 
+**7c.** Using base R functions, compute, for each country, the number of
+sprint times from this country that appear in the men's data set. Call
+the result `sprint.m.counts`. Do the same for the women's data set, and
+call the result `sprint.w.counts`. What are the 5 most represented
+countries, for the men, and for the women? (Interesting side note: go
+look up the population of Jamaica, compared to that of the US. Pretty
+impressive, eh?)
 
 ```{r q7c}
 # YOUR CODE GOES HERE
 ```
 
-**7d.** Repeat the same calculations as in last part but using `dplyr` functions, and print out again the 5 most represented countries for men and women. (No need to save new variables.) Hint: consider using `arrange()` from the `dplyr` library.
+**7d.** Repeat the same calculations as in last part but using `dplyr`
+functions, and print out again the 5 most represented countries for men
+and women. (No need to save new variables.) Hint: consider using
+`arrange()` from the `dplyr` library.
 
 ```{r q7d}
 # YOUR CODE GOES HERE
 ```
 
-**7e.** Are there any countries that are represented by women but not by men, and if so, what are they? Vice versa, represented by men and not women? Hint: consider using the `%in%` operator. 
+**7e.** Are there any countries that are represented by women but not by
+men, and if so, what are they? Vice versa, represented by men and not
+women? Hint: consider using the `%in%` operator.
 
 ```{r q7e}
 # YOUR CODE GOES HERE
 ```
 
-Q8. More practice with `dplyr` functions
-===
+# Q8. More practice with `dplyr` functions
 
-**8a.** Using `dplyr` functions, compute, for each country, the fastest time among athletes who come from that country. Do this for each of the men's and women's data sets, and display the first 10 rows of the result.
+**8a.** Using `dplyr` functions, compute, for each country, the fastest
+time among athletes who come from that country. Do this for each of the
+men's and women's data sets, and display the first 10 rows of the
+result.
 
 ```{r q8a}
 # YOUR CODE GOES HERE
 ```
 
-**8b.** With the most minor modification to your code possible, do the same computations as in the last part, but now display the first 10 results ordered by increasing time. Hint: recall `arrange()`.
+**8b.** With the most minor modification to your code possible, do the
+same computations as in the last part, but now display the first 10
+results ordered by increasing time. Hint: recall `arrange()`.
 
 ```{r q8b}
 # YOUR CODE GOES HERE
 ```
 
-**8c.** Rewrite your solution in the last part using base R. Hint: `tapply()` gives probably the easiest route here. Note: your code here shouldn't be too much more complicated than your code in the last part.
+**8c.** Rewrite your solution in the last part using base R. Hint:
+`tapply()` gives probably the easiest route here. Note: your code here
+shouldn't be too much more complicated than your code in the last part.
 
 ```{r q8c}
 # YOUR CODE GOES HERE
 ```
 
-**8d.** Using `dplyr` functions, compute, for each country, the quadruple: name, city, country, and time, corresponding to the athlete with the fastest time among athletes from that country. Do this for each of the men's and women's data sets, and display the first 10 rows of the result, ordered by increasing time. If there are ties, then show all the results that correspond to the fastest time. Hint: consider using `select()` from the `dplyr` library.
+**8d.** Using `dplyr` functions, compute, for each country, the
+quadruple: name, city, country, and time, corresponding to the athlete
+with the fastest time among athletes from that country. Do this for each
+of the men's and women's data sets, and display the first 10 rows of the
+result, ordered by increasing time. If there are ties, then show all the
+results that correspond to the fastest time. Hint: consider using
+`select()` from the `dplyr` library.
 
 ```{r q8d}
 # YOUR CODE GOES HERE
 ```
 
-**8e.** Rewrite your solution in the last part using base R. Hint: there are various routes to go; one strategy is to use `split()`, followed by `lapply()` with a custom function call, and then `rbind()` to get things in a data frame form. Note: your code here will probably be more complicated, or at least less intuitive, than your code in the last part.
+**8e.** Rewrite your solution in the last part using base R. Hint: there
+are various routes to go; one strategy is to use `split()`, followed by
+`lapply()` with a custom function call, and then `rbind()` to get things
+in a data frame form. Note: your code here will probably be more
+complicated, or at least less intuitive, than your code in the last
+part.
 
 ```{r q8e}
 # YOUR CODE GOES HERE
 ```
 
-**8f.** Order the rows by increasing `Wind` value, and then display only the women who ran at most 10.7 seconds. 
+**8f.** Order the rows by increasing `Wind` value, and then display only
+the women who ran at most 10.7 seconds.
 
 ```{r q8f}
 # YOUR CODE GOES HERE
 ```
 
-**8g.** Order the rows by terms of increasing `Time`, then increasing `Wind`, and again display only the women who ran at most 10.7 seconds, but only the `Time`, `Wind`, `Name`, and `Date` columns. 
+**8g.** Order the rows by terms of increasing `Time`, then increasing
+`Wind`, and again display only the women who ran at most 10.7 seconds,
+but only the `Time`, `Wind`, `Name`, and `Date` columns.
 
 ```{r q8g}
 # YOUR CODE GOES HERE
 ```
 
-**8h.** Plot the `Time` versus `Wind` columns, but only using data where `Wind` values that are nonpositive. Hint: note that for a data frame, `df` with columns `colX` and `colY`, you can use `plot(colY ~ colX, data=df)`, to plot `df$colY` (y-axis) versus `df$colX` (x-axis).
+**8h.** Plot the `Time` versus `Wind` columns, but only using data where
+`Wind` values that are nonpositive. Hint: note that for a data frame,
+`df` with columns `colX` and `colY`, you can use
+`plot(colY ~ colX, data=df)`, to plot `df$colY` (y-axis) versus
+`df$colX` (x-axis).
 
 ```{r q8h}
 # YOUR CODE GOES HERE
 ```
 
-**8i.** Extend your code from the last part (append just two more lines of code, glued together by a pipe) to plot the single fastest `Time` per `Wind` value. (That is, your plot should be as in the last part, but among points that share the same x value, only the point with the lowest y value should be drawn.)
+**8i.** Extend your code from the last part (append just two more lines
+of code, glued together by a pipe) to plot the single fastest `Time` per
+`Wind` value. (That is, your plot should be as in the last part, but
+among points that share the same x value, only the point with the lowest
+y value should be drawn.)
 
 ```{r q8i}
 # YOUR CODE GOES HERE
 ```
 
-Q9. Practice pivoting wider and longer
-===
+# Q9. Practice pivoting wider and longer
 
-In the following, use pipes and `dplyr` and `tidyr` verbs to answer questions on `sprint.m.df`. In some parts, it might make more sense to use direct indexing, and that's perfectly fine.
+In the following, use pipes and `dplyr` and `tidyr` verbs to answer
+questions on `sprint.m.df`. In some parts, it might make more sense to
+use direct indexing, and that's perfectly fine.
 
-**9a.** Confirm that the `Time` column is stored as character data type. Why do you think this is? Convert the `Time` column to numeric. Hint: after converting to numeric, there will be `NA` values; look at the position of one such `NA` value and revisit the original `Time` column to see why it was stored as character type in the first place.
+**9a.** Confirm that the `Time` column is stored as character data type.
+Why do you think this is? Convert the `Time` column to numeric. Hint:
+after converting to numeric, there will be `NA` values; look at the
+position of one such `NA` value and revisit the original `Time` column
+to see why it was stored as character type in the first place.
 
 ```{r q9a}
 # YOUR CODE GOES HERE
 ```
 
-**9b.** Define a reduced data frame `dat.reduced` as follows. For each athlete, and each city, keep the fastest of all times they recorded in this city. Then drop all rows with an `NA` value in the `Time` column Your new data frame `dat.reduced` should have 600 rows and 3 columns (`Name`, `City`, `Time`). Confirm that it has these dimensions, and display its first 10 rows. Hint: `drop_na()` in the `tidyr` package allows you to drop rows based on `NA` values.
+**9b.** Define a reduced data frame `dat.reduced` as follows. For each
+athlete, and each city, keep the fastest of all times they recorded in
+this city. Then drop all rows with an `NA` value in the `Time` column
+Your new data frame `dat.reduced` should have 600 rows and 3 columns
+(`Name`, `City`, `Time`). Confirm that it has these dimensions, and
+display its first 10 rows. Hint: `drop_na()` in the `tidyr` package
+allows you to drop rows based on `NA` values.
 
 ```{r q9b}
 # YOUR CODE GOES HERE
 ```
 
-**9c.** The data frame `dat.reduced` is said to be in "long" format: it has observations on the rows, and variables (`Name`, `City`, `Time`) on the columns. Arrange the rows alphebtically by city; convert this data frame into "wide" format; and then order the rows so that they are alphabetical by sprinter name. Call the result `dat.wide`. To be clear, here the first column should be the athlete names, and the remaining columns should correspond to the cities. Confirm that your data frame has dimension 141 x 152 Do these dimensions make sense to you?
+**9c.** The data frame `dat.reduced` is said to be in "long" format: it
+has observations on the rows, and variables (`Name`, `City`, `Time`) on
+the columns. Arrange the rows alphebtically by city; convert this data
+frame into "wide" format; and then order the rows so that they are
+alphabetical by sprinter name. Call the result `dat.wide`. To be clear,
+here the first column should be the athlete names, and the remaining
+columns should correspond to the cities. Confirm that your data frame
+has dimension 141 x 152 Do these dimensions make sense to you?
 
 ```{r q9c}
 # YOUR CODE GOES HERE
 ```
 
-**9d.** Not counting the names in the first column, how many non-`NA` values does `dat.wide` have? How could you have guessed this number ahead of time, directly from `dat.reduced` (before any pivoting at all)?
+**9d.** Not counting the names in the first column, how many non-`NA`
+values does `dat.wide` have? How could you have guessed this number
+ahead of time, directly from `dat.reduced` (before any pivoting at all)?
 
 ```{r q9d}
 # YOUR CODE GOES HERE
 ```
 
-**9e.** From `dat.wide`, look at the row for "Usain Bolt", and determine the city names that do not have `NA` values. These should be the cities in which he raced. Determine these cities directly from `dat.reduced`, and confirm that they match.
+**9e.** From `dat.wide`, look at the row for "Usain Bolt", and determine
+the city names that do not have `NA` values. These should be the cities
+in which he raced. Determine these cities directly from `dat.reduced`,
+and confirm that they match.
 
 ```{r q9e}
 # YOUR CODE GOES HERE
 ```
 
-**9f.** Convert `dat.wide` back into "long" format, and call the result `dat.long`. Remove rows that have `NA` values (hint: you can do this by setting `values_drop_na = TRUE` in the call to the pivoting function), and order the rows alphabetically by athlete and city name. Once you've done this, `dat.long` should have matching entries to `dat.reduced`; confirm that this is the case.
+**9f.** Convert `dat.wide` back into "long" format, and call the result
+`dat.long`. Remove rows that have `NA` values (hint: you can do this by
+setting `values_drop_na = TRUE` in the call to the pivoting function),
+and order the rows alphabetically by athlete and city name. Once you've
+done this, `dat.long` should have matching entries to `dat.reduced`;
+confirm that this is the case.
 
 ```{r q9f}
 # YOUR CODE GOES HERE
