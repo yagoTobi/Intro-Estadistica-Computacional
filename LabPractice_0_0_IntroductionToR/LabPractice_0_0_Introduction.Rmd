@@ -10,9 +10,9 @@ output:
 knitr::opts_chunk$set(cache=TRUE, autodep=TRUE, cache.comments=TRUE)
 ```
 
-Name: Victor Ovejero
-ICAI ID: 201904136 
-Collaborated with: Yago Tobio, Luis Bueno
+Name: Equipo 1
+ICAI ID: 201802168, 201810661, 201904136, 201910180
+Collaborated with: Yago Tobio, Luis Bueno, Victor Ovejero, Jesús López
 
 
 This lab is to be done in class (completed outside of class time). You may collaborate with one classmate, but you must identify his/her name above, and you must submit **your own** lab as this completed .Rmd file. 
@@ -341,8 +341,6 @@ cat("The largest element in the first column is:",max(bin.matrix[,1]))
 
 # Largest element in all but the first column
 cat("The largest element in all but the first column is:",max(bin.matrix[,-1]))
-
-
 ```
 
 **4c.** Calculate the column means of `bin.matrix` by using just a single function call.
@@ -381,8 +379,6 @@ cat("Are the means the same? ", identical(matrix_column_means,matrix_row_means))
 
 # The results are  the same, as the transpose of the original matrix has the columns
 # as rows, the row mean will be the same as the column mean of the original matrix.
-
-
 ```
 
 Q5. Warm up is over, let's go big
@@ -1277,22 +1273,33 @@ head(state.df, 3)
 
 ```
 
-**17c.** Add two columns to `state.df`, containing the x and y coordinates (longitude and latitude, respectively) of the center of the states, that are stored in the (existing) list `state.center`. Hint: take a look at this list in the console, to see what its elements are named. Name these two columns `Center.x` and `Center.y`. Display the first 3 rows and all 12 columns of `state.df`.
+**16c.** Add two columns to `state.df`, containing the x and y coordinates (longitude and latitude, respectively) of the center of the states, that are stored in the (existing) list `state.center`. Hint: take a look at this list in the console, to see what its elements are named. Name these two columns `Center.x` and `Center.y`. Display the first 3 rows and all 12 columns of `state.df`.
 
 ```{r q17c}
-# YOUR CODE GOES HERE
+state.df$Center.x <- state.center$x
+state.df$Center.y <- state.center$y
+head(state.df)
 ```
 
-**17d.** Make a new data frame which contains only those states whose longitude is less than -100. Do this in two different ways: using manual indexing, and `subset`(). Check that they are equal to each other, using an appropriate function call.
+**16d.** Make a new data frame which contains only those states whose longitude is less than -100. Do this in two different ways: using manual indexing, and `subset`(). Check that they are equal to each other, using an appropriate function call.
 
 ```{r q17d}
-# YOUR CODE GOES HERE
+filtered_df_manual <- state.df[state.df$Center.x < -100,]
+
+# Check if the two data frames are equal
+data_frames_equal <- identical(filtered_df_manual, state.df[state.df$Center.x < -100,])
+
+# Print the result
+print(data_frames_equal)
 ```
 
-**17e.** Make a new data frame which contains only the states whose longitude is less than -100, and whose murder rate is above 9%. Print this new data frame to the console. Among the states in this new data frame, which has the highest average life expectancy?
+**16e.** Make a new data frame which contains only the states whose longitude is less than -100, and whose murder rate is above 9%. Print this new data frame to the console. Among the states in this new data frame, which has the highest average life expectancy?
 
 ```{r q17e}
-# YOUR CODE GOES HERE
+filtered_df <- subset(state.df, Center.x < - 100 & Murder > 9)
+print(filtered_df)
+max_life_exp_index <- which.max(filtered_df$LifeExp)
+print(filtered_df[max_life_exp_index, ])
 ```
 
 Prostate cancer data set
@@ -1868,13 +1875,34 @@ huber = function(x, a=1) {
 ```
 
 ```{r q24a}
-# YOUR CODE GOES HERE
+x.squared <- 999
+huber(x = 3) # 5
+print(x.squared) # 999
+
+x.squared <- "Hello, Jaime!"
+huber(x = 3) # 5
+print(x.squared) #"Hello, Jaime!"
+
+x.squared <- 42
+huber(x = 3) # 5
+print(x.squared) # 42
 ```
 
 **24b.** Similar to the last question, define the variable `a` to be equal to -59.6, then call `huber(x=3, a=2)`, and show that the value of `a` after this function call is unchanged. And repeat a few times with different assignments for the variable `a`, to reiterate this point.
 
 ```{r q24b}
-# YOUR CODE GOES HERE
+a <- -59.6
+huber(x = 3, a =2) # 8 
+print(a) # - 59.6
+
+a <- "Hello, Jaime!"
+huber(x = 3,a = 2) # 8
+print(a) #"Hello, Jaime!"
+
+a <- 42
+huber(x = 3, a = 2) # 8
+print(a) # 42
+
 ```
 
 **24c.** The previous two questions showed you that a function's body has its own environment in which locally defined variables, like those defined in the body itself, or those defined through inputs to the function, take priority over those defined outside of the function. However, when a variable referred to the body of a function is *not defined in the local environment*, the default is to look for it in the global environment (outside of the function).
@@ -1888,29 +1916,70 @@ huber.sloppy = function(x) {
 ```
 
 ```{r q24c}
-# YOUR CODE GOES HERE
+# Define huber.sloppy
+huber.sloppy = function(x) {
+  ifelse(abs(x) <= a, x^2, 2*a*abs(x)-a^2)
+}
+
+# Set a globally and call huber.sloppy
+a <- 1.5
+print(huber.sloppy(x=3))  # 6.75
+
+a <- 2
+print(huber.sloppy(x=3))  # 8
+
+a <- 0.5
+print(huber.sloppy(x=3))  # 2.75
+
+# Challenge: Set a to a string and call huber.sloppy
+a <- "test"
+print(huber.sloppy(x=3)) #9, resorts to the default value were a is not an int, so a = 0, 9
 ```
 
 **24d.** At last, a difference between `=` and `<-`, explained! Some of you have been asking about this. The equal sign `=` and assignment operator `<-` are often used interchangeably in R, and some people will often say that a choice between the two is mostly a matter of stylistic taste. This is not the full story. Indeed, `=` and `<-` behave very differently when used to set input arguments in a function call. As we showed above, setting, say, `a=5` as the input to `huber()` has no effect on the global assignment for `a`. However, replacing `a=5` with `a<-5` in the call to `huber()` is entirely different in terms of its effect on `a`. Demonstrate this, and explain what you are seeing in terms of global assignment.
 
 ```{r q24d}
-# YOUR CODE GOES HERE
+# Correct use in global scope
+a <- 5  # Assigns 5 to 'a' in the global environment
+print(a)  # Should print 5
+
+# Attempting to use <- within a function call (Hypothetical and incorrect)
+huber(x <- 3, a <- 5)  # This did work and assigned it
+
+# Assuming 'a' is not a parameter of 'huber', this sets 'a' globally before calling the function
+x <- 5  # This changes 'a' globally
+result <- huber(x=5)
+print(x)
+
 ```
 
 **24e.** The story now gets even more subtle. It turns out that the assignment operator `<-` allows us to define new global variables even when we are specifying inputs to a function. Pick a variable name that has not been defined yet in your workspace, say `b` (or something else, if this has already been used in your R Markdown document). Call `huber(x=3, b<-20)`, then display the value of `b`---this variable should now exist in the global enviroment, and it should be equal to 20! Also, can you explain the output of `huber(x=3, b<-20)`?
 
 ```{r q24e}
-# YOUR CODE GOES HERE
+huber = function(x, a=1) {
+  ifelse(abs(x) <= a, x^2, 2*a*abs(x)-a^2)
+}
+
+huber(x=3, b <- 20) # * 9, as we've defined a to have a default value of 1. 
+print(b) # * Gives us 20, even though there is no b present in the function, that's pretty cool. 
 ```
 
 **Challenge.** The property of the assignment operator `<-` demonstrated in the last question, although tricky, can also be pretty useful. Leverage this property to plot the function $y=0.05x^2 - \sin(x)\cos(x) + 0.1\exp(1+\log(x))$ over 50 x values between 0 and 2, using only one line of code and one call to the function `seq()`.
 
 ```{r q24chal1}
-# YOUR CODE GOES HERE
+x <- seq(0, 2, length.out = 50); plot(x, 0.05*x^2 - sin(x)*cos(x) + 0.1*exp(1+log(x)))
 ```
 
 **Challenge.** Give an example to show that the property of the assignment operator `<-` demonstrated in the last two questions does not hold in the body of a function. That is, give an example in which `<-` is used in the body of a function to define a variable, but this doesn't translate into global assignment.
 
 ```{r q24chal2}
-# YOUR CODE GOES HERE
+my_function <- function() {
+  y <- 10
+}
+
+# Calling the function
+my_function()
+
+# Trying to access y outside the function
+print(y) # * Y not found error 
 ```
