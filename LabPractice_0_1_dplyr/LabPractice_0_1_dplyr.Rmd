@@ -256,7 +256,8 @@ allegiances_count <- map_int(got_chars, function(x) length(x$allegiances))
 print(allegiances_count)
 
 # Extract the names and allegiances count into a data frame
-char_allegiances <- tibble(name = names_vector1, allegiances = allegiances_count)
+#char_allegiances <- tibble(name = names_vector1, allegiances = allegiances_count)
+char_allegiances <- tibble(name = names1, allegiances = allegiances_count)
 
 # Find the character with the most allegiances
 max_allegiances_char <- char_allegiances %>% filter(allegiances == max(allegiances))
@@ -454,6 +455,17 @@ most number of athletes and how many that was. Hint: consider using
 
 ```{r q5a}
 # YOUR CODE GOES HERE
+
+# Display column names
+cat("Column Names:\n")
+print(names(rio))
+cat("\n")
+
+# Display the first row of the data frame
+cat("First Row:\n")
+print(head(rio, n = 1))
+
+
 ```
 
 **5b.** Using `group_by()`, `summarize()`, and `filter()`, compute which
@@ -461,6 +473,17 @@ country had the most numnber of total medals and many that was.
 
 ```{r q5b}
 # YOUR CODE GOES HERE
+
+top_medal_county <- rio %>%
+  group_by(nationality) %>%
+  summarize(total_medals = sum(gold + silver + bronze)) %>%
+  #arrange(desc(total_medals)) %>%
+  arrange(total_medals) %>%
+  head(5)
+
+# Now print the result
+print(top_medal_county)
+
 ```
 
 **5c.** Using `group_by()`, `summarize()`, and `filter()`, compute which
@@ -471,6 +494,18 @@ compute the number of athletes; and you might need two calls to
 
 ```{r q5c}
 # YOUR CODE GOES HERE
+
+result <- rio %>%
+  group_by(nationality) %>%
+  summarize(total_medals = sum(gold + silver + bronze), num_athletes = n(), .groups = "drop") %>%
+  filter(total_medals == 0) %>%
+  arrange(desc(num_athletes)) %>%
+  head(5)
+
+
+
+# Print the result
+print(result)
 ```
 
 **5d.** Using---yes, you guessed it---`group_by()`, `summarize()`, and
@@ -483,6 +518,22 @@ functions so that they will not be thrown off by `NA` or `NaN` values.
 
 ```{r q5d}
 # YOUR CODE GOES HERE
+
+rio %>%
+  filter(sex == "male") %>%
+  group_by(sport) %>%
+  summarize(avg_weight = mean(weight, na.rm = TRUE)) %>%
+  arrange(desc(avg_weight)) %>%
+  head(5)
+  
+  
+rio %>%
+  filter(sex == "female") %>%
+  group_by(sport) %>%
+  summarize(avg_weight = mean(weight, na.rm = TRUE)) %>%
+  arrange(desc(avg_weight)) %>%
+  head(5)
+
 ```
 
 # Fastest 100m sprint times
@@ -515,6 +566,15 @@ In the following, use pipes and `dplyr` verbs to answer questions on
 
 ```{r q6a}
 # YOUR CODE GOES HERE
+
+# Calculate the desired results using dplyr
+result <- pros.df %>%
+  summarise(min_lpsa = min(lpsa, na.rm = TRUE),
+            max_lpsa = max(lpsa, na.rm = TRUE))
+
+# Print the result
+print(result)
+
 ```
 
 **6b.** Order the rows by decreasing `age`, then display the rows from
@@ -522,6 +582,14 @@ men who are older than 70 and without SVI.
 
 ```{r q6b}
 # YOUR CODE GOES HERE
+
+# Sort the rows by decreasing age
+sorted_pros <- pros.df[order(-pros.df$age, pros.df$svi), ]
+
+# Display the rows for men aged over 70 without SVI
+subset_rows <- sorted_pros[(sorted_pros$age > 70 & sorted_pros$svi == 0), ]
+head(subset_rows)
+
 ```
 
 **6c.** Order the rows by decreasing `age`, then decreasing `lpsa`
@@ -532,6 +600,19 @@ specifies the priority.
 
 ```{r q6c}
 # YOUR CODE GOES HERE
+
+# Arrange the rows by decreasing age and decreasing lpsa score
+ordered_pros <- pros.df %>%
+  arrange(desc(age), desc(lpsa))
+
+# Select rows for men aged over 70 without SVI, showing the selected columns
+selected_columns <- ordered_pros %>%
+  filter(age > 70 & svi == 0) %>%
+  select(age, lpsa, lcavol, lweight)
+
+# Show the resulting table
+print(selected_columns)
+
 ```
 
 **6d.** We're going to resolve Q2c from Lab 3 using the tidyverse. Using
@@ -550,6 +631,7 @@ t.test.by.ind = function(x, ind) {
 
 ```{r q6d}
 # YOUR CODE GOES HERE
+
 ```
 
 **6e.** Extend your code from the last part (append just one more line
