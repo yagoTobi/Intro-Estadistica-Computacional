@@ -899,6 +899,22 @@ among points that share the same x value, only the point with the lowest
 y value should be drawn.)
 
 ```{r q8i}
+# Assuming sprint.w.df has been loaded into the R environment
+
+# Convert Time to numeric after removing quotes
+sprint.w.df$Time <- as.numeric(gsub("\"", "", sprint.w.df$Time))
+
+# Subset the data where Wind values are nonpositive
+nonpositive_wind_data <- sprint.w.df[sprint.w.df$Wind <= 0, ]
+
+# Find the fastest Time for each Wind value
+fastest_time_per_wind <- aggregate(Time ~ Wind, data = nonpositive_wind_data, min)
+
+# Plot the fastest Time versus Wind
+plot(Time ~ Wind, data = fastest_time_per_wind,
+     main = "Fastest Time versus Wind for Nonpositive Wind Values",
+     xlab = "Wind (m/s)", ylab = "Fastest Time (seconds)",
+     pch = 19, col = "blue")
 
 ```
 
@@ -915,7 +931,19 @@ position of one such `NA` value and revisit the original `Time` column
 to see why it was stored as character type in the first place.
 
 ```{r q9a}
-# YOUR CODE GOES HERE
+# Confirm the data type of the Time column
+class(sprint.m.df$Time)
+
+# Convert the Time column to numeric, this will create NA values for non-convertible entries
+sprint.m.df <- sprint.m.df %>%
+  mutate(Time_numeric = as.numeric(gsub("\"", "", Time)))
+
+# Find the position of the NA values in the new Time_numeric column
+na_positions <- which(is.na(sprint.m.df$Time_numeric))
+
+# Inspect the original Time column for an NA position
+sprint.m.df$Time[na_positions]
+
 ```
 
 **9b.** Define a reduced data frame `dat.reduced` as follows. For each
@@ -927,7 +955,20 @@ display its first 10 rows. Hint: `drop_na()` in the `tidyr` package
 allows you to drop rows based on `NA` values.
 
 ```{r q9b}
-# YOUR CODE GOES HERE
+# Convert Time to numeric (handling the conversion issue)
+sprint.m.df <- sprint.m.df %>%
+  mutate(Time = as.numeric(gsub("\"", "", Time, fixed = TRUE)))
+
+# Create dat.reduced
+dat.reduced <- sprint.m.df %>%
+  group_by(Name, City) %>%
+  summarize(Time = min(Time, na.rm = TRUE), .groups = 'drop') %>%
+  drop_na(Time)
+
+# Confirm dimensions and display the first 10 rows
+print(dim(dat.reduced))
+print(head(dat.reduced, 10))
+
 ```
 
 **9c.** The data frame `dat.reduced` is said to be in "long" format: it
@@ -940,7 +981,13 @@ columns should correspond to the cities. Confirm that your data frame
 has dimension 141 x 152 Do these dimensions make sense to you?
 
 ```{r q9c}
-# YOUR CODE GOES HERE
+dat.wide <- dat.reduced %>%
+  arrange(City) %>%
+  pivot_wider(names_from = City, values_from = Time) %>%
+  arrange(Name)
+
+# Confirm dimensions
+print(dim(dat.wide))
 ```
 
 **9d.** Not counting the names in the first column, how many non-`NA`
@@ -948,7 +995,11 @@ values does `dat.wide` have? How could you have guessed this number
 ahead of time, directly from `dat.reduced` (before any pivoting at all)?
 
 ```{r q9d}
-# YOUR CODE GOES HERE
+non_na_count <- sum(!is.na(dat.wide[, -1])) # Exclude the first column (Name)
+print(non_na_count)
+
+# How to guess this number from dat.reduced
+print(nrow(dat.reduced)) # This should match non_na_count
 ```
 
 **9e.** From `dat.wide`, look at the row for "Usain Bolt", and determine
@@ -957,7 +1008,17 @@ in which he raced. Determine these cities directly from `dat.reduced`,
 and confirm that they match.
 
 ```{r q9e}
-# YOUR CODE GOES HERE
+usain_bolt_cities_wide <- names(dat.wide)[which(!is.na(dat.wide[dat.wide$Name == "Usain Bolt", -1])) + 1]
+print(usain_bolt_cities_wide)
+
+# Directly from dat.reduced
+usain_bolt_cities_reduced <- dat.reduced %>%
+  filter(Name == "Usain Bolt") %>%
+  pull(City)
+print(usain_bolt_cities_reduced)
+
+# Confirm they match
+print(all(usain_bolt_cities_wide == usain_bolt_cities_reduced))
 ```
 
 **9f.** Convert `dat.wide` back into "long" format, and call the result
@@ -968,5 +1029,10 @@ done this, `dat.long` should have matching entries to `dat.reduced`;
 confirm that this is the case.
 
 ```{r q9f}
-# YOUR CODE GOES HERE
+dat.long <- dat.wide %>%
+  pivot_longer(-Name, names_to = "City", values_to = "Time", values_drop_na = TRUE) %>%
+  arrange(Name, City)
+
+# Confirm matching entries with dat.reduced
+print(all.equal(dat.long, dat.reduced))
 ```
