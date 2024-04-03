@@ -1,0 +1,108 @@
+---
+title: 'Lab 03: Testing'
+author: "Introduction to Statistical Computing"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r, include=FALSE}
+# A hook to wrap output based on a linewidth chunk option
+# From https://github.com/yihui/knitr-examples/blob/master/077-wrap-output.Rmd
+library(knitr)
+hook_output = knit_hooks$get('output')
+knit_hooks$set(output = function(x, options) {
+  # this hook is used only when the linewidth option is not NULL
+  if (!is.null(n <- options$linewidth)) {
+    x = knitr:::split_lines(x)
+    # any lines wider than n should be wrapped
+    if (any(nchar(x) > n)) x = strwrap(x, width = n)
+    x = paste(x, collapse = '\n')
+  }
+  hook_output(x, options)
+})
+opts_chunk$set(cache=TRUE, autodep=TRUE, cache.comments=TRUE, linewidth=79)
+```
+
+Name:  
+ICAI ID:  
+Collaborated with:  
+
+This lab is to be done in class (completed outside of class time). You may collaborate with one classmate, but you must identify his/her name above, and you must submit **your own** lab as this completed .Rmd file. 
+
+Installing and loading packages 
+===
+
+In order to perform the exercises in this practice you should install and load the `testthat` and the `covr` package. 
+
+```{r}
+# YOUR CODE GOES HERE
+```
+
+Q1. Unitary tests
+===
+
+**1a.** Let's begin with an easy one. You have the following function to convert from Celsius to Fahrenheit. Just check that it works by using an unitary test using the `testthat` package. You may need to see the help for the function `?test_that`:
+
+```{r q1a}
+C_to_F <- function(C_temp){
+    F_temp <- (C_temp * 9/5) + 32;
+    return(F_temp);
+}
+# YOUR CODE GOES HERE
+```
+**1b.** Okey, you just have learned to test a function. Review the concept with the function to convert from Fahrenheit to Celsius:
+
+```{r q1b}
+F_to_C <- function(F_temp){
+    C_temp <- (F_temp - 32) * 5/9;
+    return(C_temp);
+}
+# YOUR CODE GOES HERE
+```
+Q2. Using a test file
+===
+**2a.** Test functions can be saved like any other R script file (with a .R extension), but with one caveat. A test R script should start with the prefix ‘test-’. A good way of doing this is to add the prefix to the name of file that stores the functions to be tested. In this case, your teacher have included the `C_to_F` and `F_to_C` function to the `temp_conversion.R` file. You shall include the tests created in the previous section to the file `test-temp_conversion.R`. After that, run the following command to run all the test files included in the working directory:
+```{r q2a}
+test_dir(".")
+```
+
+**2b.** In the test file provided there is a failing test. Correct it and check that the `test_dir(".")` command now runs smoothly.
+```{r q2a}
+# YOUR CODE GOES HERE
+```
+
+Q3. Complicate things
+===
+**3a. ** Now that you have the setup done, create a file called `test-my_awesome_function.R` with tests for the function `my_awesome_function()` included in `my_awesome_function.R` so that they:
+- Try the function with erroneous data type, for example, using a string instead of a number.
+- Try the function with vectorized inputs.
+- Check that the results are numeric.
+
+After that, modify the function in order than none of this scenarios produce an error in the tests. You might need to include `stop()` statements in failing cases.
+Try the tests using the `test_file` function:
+```{r q3a}
+test_file("test-my_awesome_function.R")
+```
+
+Q4. Code coverage
+===
+**4a. ** Now that you know how to modify tests, let's obtain the code coverage for the `number_utility.R` file. In order to do that, we will use the `covr` package to obtain a code coverage report of this file using the test file `test-number_utility.R`. 
+```{r q4a}
+# Constants
+number_utility <- "number_utility"
+extension_r <- ".R"
+extension_htm <- ".htm"
+
+# Manage file names
+code_file_name <- paste(number_utility, extension_r, sep="")
+test_file_name <- paste("test-", code_file_name, sep="")
+coverage_report_file_name <- paste("coverage_report_", number_utility, extension_htm, sep="")
+
+# Run tests and generate Code Coverage Report
+test_file(test_file_name)
+res <- file_coverage(code_file_name, test_file_name)
+print(res)
+report(res, coverage_report_file_name)
+```
+The code coverage is a sad 47.37% using the current tests. Modify the test file in order to achieve at least a 60% of code coverage.
