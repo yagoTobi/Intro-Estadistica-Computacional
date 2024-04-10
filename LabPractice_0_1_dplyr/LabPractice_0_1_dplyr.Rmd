@@ -256,7 +256,10 @@ allegiances_count <- map_int(got_chars, function(x) length(x$allegiances))
 print(allegiances_count)
 
 # Extract the names and allegiances count into a data frame
+<<<<<<< HEAD
 #char_allegiances <- tibble(name = names_vector1, allegiances = allegiances_count)
+=======
+>>>>>>> c5a67b865174017dd818a26e97b53c1814b97bf7
 char_allegiances <- tibble(name = names1, allegiances = allegiances_count)
 
 # Find the character with the most allegiances
@@ -454,6 +457,7 @@ most number of athletes and how many that was. Hint: consider using
 `n()` from the `dplyr` package for the first part here.
 
 ```{r q5a}
+<<<<<<< HEAD
 # YOUR CODE GOES HERE
 
 # Display column names
@@ -466,12 +470,29 @@ cat("First Row:\n")
 print(head(rio, n = 1))
 
 
+=======
+# Step 2 & 3: Group by country and summarize to count athletes
+athletes_per_country <- rio %>%
+  group_by(nationality) %>%
+  summarize(Num_Athletes = n())
+
+# Step 4: Print results for the first 10 countries
+print(athletes_per_country[1:10, ])
+
+# Step 5: Identify the country with the most athletes
+most_athletes <- athletes_per_country %>%
+  filter(Num_Athletes == max(Num_Athletes))
+
+# Print the country with the most athletes and the count
+print(most_athletes)
+>>>>>>> c5a67b865174017dd818a26e97b53c1814b97bf7
 ```
 
 **5b.** Using `group_by()`, `summarize()`, and `filter()`, compute which
-country had the most numnber of total medals and many that was.
+country had the largest number of total medals and many that was.
 
 ```{r q5b}
+<<<<<<< HEAD
 # YOUR CODE GOES HERE
 
 top_medal_county <- rio %>%
@@ -483,6 +504,20 @@ top_medal_county <- rio %>%
 
 # Now print the result
 print(top_medal_county)
+=======
+# Group by country and summarize to count total medals
+total_medals_per_country <- rio %>%
+  group_by(nationality) %>%
+  summarize(Total_Medals = sum(gold, silver, bronze, na.rm = TRUE)) %>%
+  arrange(desc(Total_Medals))
+
+# Print results for the country with the most medals
+most_medals_country <- total_medals_per_country %>%
+  filter(Total_Medals == max(Total_Medals))
+
+# Print the country with the most medals
+print(most_medals_country)
+>>>>>>> c5a67b865174017dd818a26e97b53c1814b97bf7
 
 ```
 
@@ -493,6 +528,7 @@ compute the number of athletes; and you might need two calls to
 `filter()`.
 
 ```{r q5c}
+<<<<<<< HEAD
 # YOUR CODE GOES HERE
 
 result <- rio %>%
@@ -506,6 +542,26 @@ result <- rio %>%
 
 # Print the result
 print(result)
+=======
+country_medals_athletes <- rio %>%
+  group_by(nationality) %>%
+  summarize(
+    Total_Medals = sum(gold, silver, bronze, na.rm = TRUE),
+    Num_Athletes = n()
+  ) %>%
+  arrange(desc(Num_Athletes))
+
+# First filter to get countries with zero total medals
+countries_with_zero_medals <- country_medals_athletes %>%
+  filter(Total_Medals == 0)
+
+# Second filter to find the one with the most athletes
+country_with_most_athletes_zero_medals <- countries_with_zero_medals %>%
+  filter(Num_Athletes == max(Num_Athletes))
+
+# Print the country with the most athletes among those with zero medals
+print(country_with_most_athletes_zero_medals)
+>>>>>>> c5a67b865174017dd818a26e97b53c1814b97bf7
 ```
 
 **5d.** Using---yes, you guessed it---`group_by()`, `summarize()`, and
@@ -517,6 +573,7 @@ accept more than one grouping variable. Also, consider using
 functions so that they will not be thrown off by `NA` or `NaN` values.
 
 ```{r q5d}
+<<<<<<< HEAD
 # YOUR CODE GOES HERE
 
 rio %>%
@@ -534,6 +591,35 @@ rio %>%
   arrange(desc(avg_weight)) %>%
   head(5)
 
+=======
+# Group by sport and sex, then calculate average weight
+average_weight_by_sport_sex <- rio %>%
+  group_by(sport, sex) %>%
+  summarise(Average_Weight = mean(weight, na.rm = TRUE), .groups = 'drop') %>%
+  arrange(desc(Average_Weight))
+
+print(average_weight_by_sport_sex)
+
+# Find the sport with the highest average weight for men
+highest_avg_weight_sport_men <- average_weight_by_sport_sex %>%
+  filter(sex == "male") %>%
+  top_n(1, Average_Weight)
+
+print(highest_avg_weight_sport_men)
+
+# Find the sport with the highest average weight for women
+highest_avg_weight_sport_women <- average_weight_by_sport_sex %>%
+  filter(sex == "female") %>%
+  top_n(1, Average_Weight)
+
+print(highest_avg_weight_sport_women)
+
+# Combine the results
+highest_avg_weight_sports <- bind_rows(highest_avg_weight_sport_men, highest_avg_weight_sport_women)
+
+# Print the sports with the highest average weight for men and women
+print(highest_avg_weight_sports)
+>>>>>>> c5a67b865174017dd818a26e97b53c1814b97bf7
 ```
 
 # Fastest 100m sprint times
@@ -624,13 +710,22 @@ Print the returned t-test objects out to the console.
 
 ```{r}
 t.test.by.ind = function(x, ind) {
+  
   stopifnot(all(ind %in% c(0, 1)))
+  
   return(t.test(x[ind == 0], x[ind == 1]))
 } 
 ```
 
 ```{r q6d}
-# YOUR CODE GOES HERE
+
+for (col in names(pros.df)[-which(names(pros.df)=="svi")]) {
+  cat("Testing:", col, "\n")
+  result <- t.test.by.ind(pros.df[[col]], pros.df$svi)
+  print(result)
+  cat("\n\n")
+}
+
 
 ```
 
@@ -640,6 +735,25 @@ the returned t-test objects, and print them out to the console.
 
 ```{r q6e}
 # YOUR CODE GOES HERE
+
+p_values <- unlist(lapply(
+  for (col in names(pros.df)[-which(names(pros.df)=="svi")]) {
+      cat("Testing:", col, "\n")
+      result <- t.test.by.ind(pros.df[[col]], pros.df$svi) %>%
+        broom::tidy() %>%
+        dplyr::select(p.value) %>%
+        pluck(1)
+      
+      print(result)
+      cat("\n\n")
+      result
+  },
+  FUN=identity
+))
+
+
+
+
 ```
 
 ```{r}
@@ -649,6 +763,9 @@ sprint.m.df = read.table(
 sprint.w.df = read.table(
   file="http://www.stat.cmu.edu/~ryantibs/statcomp/data/sprint.w.txt", 
   sep="\t", quote="", header=TRUE)
+
+print(sprint.m.df)
+print(sprint.w.df)
 ```
 
 # Q7 - More practice with data frame computations
@@ -659,6 +776,19 @@ first and last 3 rows of each.
 
 ```{r q7a}
 # YOUR CODE GOES HERE
+
+# Check if they are data frames
+class(sprint.m.df); class(sprint.w.df)
+
+# Remove Rank column
+sprint.m.df <- sprint.m.df[,-1]; sprint.w.df <- sprint.w.df[,-1]
+
+# Display first 3 rows of each data frame
+head(sprint.m.df, n = 3); head(sprint.w.df, n = 3)
+
+# Display last 3 rows of each data frame
+tail(sprint.m.df, n = 3); tail(sprint.w.df, n = 3)
+
 ```
 
 **7b.** Recompute the ranks for the men's data set from the `Time`
@@ -669,6 +799,16 @@ out the first 10 rows of each data frame, but only the `Time`, `Name`,
 
 ```{r q7b}
 # YOUR CODE GOES HERE
+# Compute ranks for males
+sprint.m.df$Rank_male <- rank(sprint.m.df$Time)
+
+# Compute ranks for female
+sprint.w.df$Rank_female <- rank(sprint.w.df$Time)
+
+# Print out the first 10 rows of each data frame with specified columns
+head(sprint.m.df[, c("Time", "Name", "Date", "Rank_male")], n = 10)
+head(sprint.w.df[, c("Time", "Name", "Date", "Rank_female")], n = 10)
+
 ```
 
 **7c.** Using base R functions, compute, for each country, the number of
@@ -681,6 +821,25 @@ impressive, eh?)
 
 ```{r q7c}
 # YOUR CODE GOES HERE
+
+# Count for men
+sprint.m.counts <- table(sprint.m.df$Country)
+
+# Count for women
+sprint.w.counts <- table(sprint.w.df$Country)
+
+
+# Top 5 countries for men
+top_men <- head(sort(sprint.m.counts, decreasing = TRUE), 5)
+
+# Top 5 countries for women
+top_women <- head(sort(sprint.w.counts, decreasing = TRUE), 5)
+
+cat("Top 5 countries for men:\n")
+print(top_men)
+cat("\nTop 5 countries for women:\n")
+print(top_women)
+
 ```
 
 **7d.** Repeat the same calculations as in last part but using `dplyr`
@@ -690,6 +849,28 @@ and women. (No need to save new variables.) Hint: consider using
 
 ```{r q7d}
 # YOUR CODE GOES HERE
+
+# Count for men using dplyr
+sprint.m.counts.dplyr <- sprint.m.df %>%
+  group_by(Country) %>%
+  tally() %>%
+  arrange(desc(n))
+
+# Count for women using dplyr
+sprint.w.counts.dplyr <- sprint.w.df %>%
+  group_by(Country) %>%
+  tally() %>%
+  arrange(desc(n))
+
+
+cat("Top 5 countries for men (using dplyr): \n")
+print(head(sprint.m.counts.dplyr, n = 5))
+cat("\n")
+
+cat("Top 5 countries for women (using dplyr): \n")
+print(head(sprint.w.counts.dplyr, n = 5))
+
+
 ```
 
 **7e.** Are there any countries that are represented by women but not by
@@ -698,6 +879,15 @@ women? Hint: consider using the `%in%` operator.
 
 ```{r q7e}
 # YOUR CODE GOES HERE
+
+countries_only_women <- anti_join(sprint.w.df %>% distinct(Country), sprint.m.df %>% distinct(Country), by = "Country") %>% pull(Country)
+countries_only_men <- anti_join(sprint.m.df %>% distinct(Country), sprint.w.df %>% distinct(Country), by = "Country") %>% pull(Country)
+
+
+cat("Countries represented by women but not by men:", paste(countries_only_women, collapse = ", "), "\n")
+cat("Countries represented by men but not by women:", paste(countries_only_men, collapse = ", "), "\n")
+
+
 ```
 
 # Q8. More practice with `dplyr` functions
@@ -708,7 +898,23 @@ men's and women's data sets, and display the first 10 rows of the
 result.
 
 ```{r q8a}
-# YOUR CODE GOES HERE
+# Convert Time to numeric and compute the fastest time for men's dataset
+fastest_men <- sprint.m.df %>%
+  mutate(Time = as.numeric(gsub("\"", "", Time))) %>%  # Remove quotes and convert to numeric
+  group_by(Country) %>%
+  summarize(Fastest_Time = min(Time, na.rm = TRUE), .groups = 'drop') %>%
+  slice_head(n = 10)
+
+# Convert Time to numeric and compute the fastest time for women's dataset
+fastest_women <- sprint.w.df %>%
+  mutate(Time = as.numeric(gsub("\"", "", Time))) %>%  # Remove quotes and convert to numeric
+  group_by(Country) %>%
+  summarize(Fastest_Time = min(Time, na.rm = TRUE), .groups = 'drop') %>%
+  slice_head(n = 10)
+
+# Print the results
+print(fastest_men)
+print(fastest_women)
 ```
 
 **8b.** With the most minor modification to your code possible, do the
@@ -716,7 +922,25 @@ same computations as in the last part, but now display the first 10
 results ordered by increasing time. Hint: recall `arrange()`.
 
 ```{r q8b}
-# YOUR CODE GOES HERE
+# Convert Time to numeric and compute the fastest time for men's dataset
+fastest_men <- sprint.m.df %>%
+  mutate(Time = as.numeric(gsub("\"", "", Time))) %>%  # Remove quotes and convert to numeric
+  group_by(Country) %>%
+  summarize(Fastest_Time = min(Time, na.rm = TRUE), .groups = 'drop') %>%
+  arrange(Fastest_Time) %>%
+  slice_head(n = 10)
+
+# Convert Time to numeric and compute the fastest time for women's dataset
+fastest_women <- sprint.w.df %>%
+  mutate(Time = as.numeric(gsub("\"", "", Time))) %>%  # Remove quotes and convert to numeric
+  group_by(Country) %>%
+  summarize(Fastest_Time = min(Time, na.rm = TRUE), .groups = 'drop') %>%
+  arrange(Fastest_Time) %>%
+  slice_head(n = 10)
+
+# Print the results
+print(fastest_men)
+print(fastest_women)
 ```
 
 **8c.** Rewrite your solution in the last part using base R. Hint:
@@ -724,7 +948,27 @@ results ordered by increasing time. Hint: recall `arrange()`.
 shouldn't be too much more complicated than your code in the last part.
 
 ```{r q8c}
-# YOUR CODE GOES HERE
+# Convert Time to numeric after removing quotes for men's dataset
+sprint.m.df$Time <- as.numeric(gsub("\"", "", sprint.m.df$Time))
+
+# Use tapply to compute the fastest time for each country in the men's dataset
+fastest_times_men <- tapply(sprint.m.df$Time, sprint.m.df$Country, min, na.rm = TRUE)
+
+# Convert the result to a data frame, sort it, and get the first 10 entries
+fastest_times_men_df <- data.frame(Country = names(fastest_times_men), Fastest_Time = fastest_times_men)
+fastest_times_men_df <- fastest_times_men_df[order(fastest_times_men_df$Fastest_Time), ]
+head(fastest_times_men_df, 10)
+
+# Convert Time to numeric after removing quotes for women's dataset
+sprint.w.df$Time <- as.numeric(gsub("\"", "", sprint.w.df$Time))
+
+# Use tapply to compute the fastest time for each country in the women's dataset
+fastest_times_women <- tapply(sprint.w.df$Time, sprint.w.df$Country, min, na.rm = TRUE)
+
+# Convert the result to a data frame, sort it, and get the first 10 entries
+fastest_times_women_df <- data.frame(Country = names(fastest_times_women), Fastest_Time = fastest_times_women)
+fastest_times_women_df <- fastest_times_women_df[order(fastest_times_women_df$Fastest_Time), ]
+head(fastest_times_women_df, 10)
 ```
 
 **8d.** Using `dplyr` functions, compute, for each country, the
@@ -736,7 +980,32 @@ results that correspond to the fastest time. Hint: consider using
 `select()` from the `dplyr` library.
 
 ```{r q8d}
-# YOUR CODE GOES HERE
+# For the men's dataset
+fastest_men <- sprint.m.df %>%
+  mutate(Time = as.numeric(gsub("\"", "", Time))) %>%
+  arrange(Country, Time) %>%
+  group_by(Country) %>%
+  filter(Time == min(Time, na.rm = TRUE)) %>%
+  select(Name, City, Country, Time) %>%
+  ungroup() %>%
+  arrange(Time) %>%
+  slice_head(n = 10)
+
+# For the women's dataset
+fastest_women <- sprint.w.df %>%
+  mutate(Time = as.numeric(gsub("\"", "", Time))) %>%
+  arrange(Country, Time) %>%
+  group_by(Country) %>%
+  filter(Time == min(Time, na.rm = TRUE)) %>%
+  select(Name, City, Country, Time) %>%
+  ungroup() %>%
+  arrange(Time) %>%
+  slice_head(n = 10)
+
+# Print the results
+print(fastest_men)
+print(fastest_women)
+
 ```
 
 **8e.** Rewrite your solution in the last part using base R. Hint: there
@@ -747,14 +1016,42 @@ complicated, or at least less intuitive, than your code in the last
 part.
 
 ```{r q8e}
-# YOUR CODE GOES HERE
+# Assuming sprint.m.df and sprint.w.df have been loaded into the R environment
+
+# Define a custom function to find the fastest athlete per country
+fastest_athlete <- function(df) {
+  df$Time <- as.numeric(gsub("\"", "", df$Time))
+  min_time <- min(df$Time, na.rm = TRUE)
+  fastest <- df[df$Time == min_time, ]
+  return(fastest)
+}
+
+# Apply the function to each subset of the data split by country
+fastest_men <- do.call(rbind, lapply(split(sprint.m.df, sprint.m.df$Country), fastest_athlete))
+fastest_women <- do.call(rbind, lapply(split(sprint.w.df, sprint.w.df$Country), fastest_athlete))
+
+# Order the results by increasing time and select the first 10 rows
+fastest_men_ordered <- fastest_men[order(fastest_men$Time), ][1:10, ]
+fastest_women_ordered <- fastest_women[order(fastest_women$Time), ][1:10, ]
+
+# Print the results
+print(fastest_men_ordered)
+print(fastest_women_ordered)
 ```
 
 **8f.** Order the rows by increasing `Wind` value, and then display only
 the women who ran at most 10.7 seconds.
 
 ```{r q8f}
-# YOUR CODE GOES HERE
+# Convert Time to numeric after removing quotes for the women's dataset
+sprint.w.df$Time <- as.numeric(gsub("\"", "", sprint.w.df$Time))
+
+# Order by Wind and then filter for times at most 10.7 seconds
+fastest_women_under_10_7 <- sprint.w.df[sprint.w.df$Time <= 10.7, ]
+fastest_women_under_10_7_ordered <- fastest_women_under_10_7[order(fastest_women_under_10_7$Wind), ]
+
+# Display the result
+print(fastest_women_under_10_7_ordered)
 ```
 
 **8g.** Order the rows by terms of increasing `Time`, then increasing
@@ -762,7 +1059,18 @@ the women who ran at most 10.7 seconds.
 but only the `Time`, `Wind`, `Name`, and `Date` columns.
 
 ```{r q8g}
-# YOUR CODE GOES HERE
+# Assuming sprint.w.df has been loaded into the R environment
+
+# Convert Time to numeric after removing quotes
+sprint.w.df$Time <- as.numeric(gsub("\"", "", sprint.w.df$Time))
+
+# Order by Time, then Wind, filter for times at most 10.7 seconds, and select columns
+fastest_women <- sprint.w.df[sprint.w.df$Time <= 10.7, ]
+fastest_women_ordered <- fastest_women[order(fastest_women$Time, fastest_women$Wind), ]
+selected_columns <- fastest_women_ordered[c("Time", "Wind", "Name", "Date")]
+
+# Display the result
+print(selected_columns)
 ```
 
 **8h.** Plot the `Time` versus `Wind` columns, but only using data where
@@ -772,7 +1080,17 @@ but only the `Time`, `Wind`, `Name`, and `Date` columns.
 `df$colX` (x-axis).
 
 ```{r q8h}
-# YOUR CODE GOES HERE
+# Convert Time to numeric after removing quotes
+sprint.w.df$Time <- as.numeric(gsub("\"", "", sprint.w.df$Time))
+
+# Subset the data where Wind values are nonpositive
+nonpositive_wind_data <- sprint.w.df[sprint.w.df$Wind <= 0, ]
+
+# Plot Time versus Wind
+plot(Time ~ Wind, data=nonpositive_wind_data,
+     main="Time versus Wind for Nonpositive Wind Values",
+     xlab="Wind (m/s)", ylab="Time (seconds)",
+     pch=19, col="blue")
 ```
 
 **8i.** Extend your code from the last part (append just two more lines
@@ -782,7 +1100,23 @@ among points that share the same x value, only the point with the lowest
 y value should be drawn.)
 
 ```{r q8i}
-# YOUR CODE GOES HERE
+# Assuming sprint.w.df has been loaded into the R environment
+
+# Convert Time to numeric after removing quotes
+sprint.w.df$Time <- as.numeric(gsub("\"", "", sprint.w.df$Time))
+
+# Subset the data where Wind values are nonpositive
+nonpositive_wind_data <- sprint.w.df[sprint.w.df$Wind <= 0, ]
+
+# Find the fastest Time for each Wind value
+fastest_time_per_wind <- aggregate(Time ~ Wind, data = nonpositive_wind_data, min)
+
+# Plot the fastest Time versus Wind
+plot(Time ~ Wind, data = fastest_time_per_wind,
+     main = "Fastest Time versus Wind for Nonpositive Wind Values",
+     xlab = "Wind (m/s)", ylab = "Fastest Time (seconds)",
+     pch = 19, col = "blue")
+
 ```
 
 # Q9. Practice pivoting wider and longer
@@ -798,7 +1132,19 @@ position of one such `NA` value and revisit the original `Time` column
 to see why it was stored as character type in the first place.
 
 ```{r q9a}
-# YOUR CODE GOES HERE
+# Confirm the data type of the Time column
+class(sprint.m.df$Time)
+
+# Convert the Time column to numeric, this will create NA values for non-convertible entries
+sprint.m.df <- sprint.m.df %>%
+  mutate(Time_numeric = as.numeric(gsub("\"", "", Time)))
+
+# Find the position of the NA values in the new Time_numeric column
+na_positions <- which(is.na(sprint.m.df$Time_numeric))
+
+# Inspect the original Time column for an NA position
+sprint.m.df$Time[na_positions]
+
 ```
 
 **9b.** Define a reduced data frame `dat.reduced` as follows. For each
@@ -810,7 +1156,20 @@ display its first 10 rows. Hint: `drop_na()` in the `tidyr` package
 allows you to drop rows based on `NA` values.
 
 ```{r q9b}
-# YOUR CODE GOES HERE
+# Convert Time to numeric (handling the conversion issue)
+sprint.m.df <- sprint.m.df %>%
+  mutate(Time = as.numeric(gsub("\"", "", Time, fixed = TRUE)))
+
+# Create dat.reduced
+dat.reduced <- sprint.m.df %>%
+  group_by(Name, City) %>%
+  summarize(Time = min(Time, na.rm = TRUE), .groups = 'drop') %>%
+  drop_na(Time)
+
+# Confirm dimensions and display the first 10 rows
+print(dim(dat.reduced))
+print(head(dat.reduced, 10))
+
 ```
 
 **9c.** The data frame `dat.reduced` is said to be in "long" format: it
@@ -823,7 +1182,13 @@ columns should correspond to the cities. Confirm that your data frame
 has dimension 141 x 152 Do these dimensions make sense to you?
 
 ```{r q9c}
-# YOUR CODE GOES HERE
+dat.wide <- dat.reduced %>%
+  arrange(City) %>%
+  pivot_wider(names_from = City, values_from = Time) %>%
+  arrange(Name)
+
+# Confirm dimensions
+print(dim(dat.wide))
 ```
 
 **9d.** Not counting the names in the first column, how many non-`NA`
@@ -831,7 +1196,11 @@ values does `dat.wide` have? How could you have guessed this number
 ahead of time, directly from `dat.reduced` (before any pivoting at all)?
 
 ```{r q9d}
-# YOUR CODE GOES HERE
+non_na_count <- sum(!is.na(dat.wide[, -1])) # Exclude the first column (Name)
+print(non_na_count)
+
+# How to guess this number from dat.reduced
+print(nrow(dat.reduced)) # This should match non_na_count
 ```
 
 **9e.** From `dat.wide`, look at the row for "Usain Bolt", and determine
@@ -840,7 +1209,17 @@ in which he raced. Determine these cities directly from `dat.reduced`,
 and confirm that they match.
 
 ```{r q9e}
-# YOUR CODE GOES HERE
+usain_bolt_cities_wide <- names(dat.wide)[which(!is.na(dat.wide[dat.wide$Name == "Usain Bolt", -1])) + 1]
+print(usain_bolt_cities_wide)
+
+# Directly from dat.reduced
+usain_bolt_cities_reduced <- dat.reduced %>%
+  filter(Name == "Usain Bolt") %>%
+  pull(City)
+print(usain_bolt_cities_reduced)
+
+# Confirm they match
+print(all(usain_bolt_cities_wide == usain_bolt_cities_reduced))
 ```
 
 **9f.** Convert `dat.wide` back into "long" format, and call the result
@@ -851,5 +1230,10 @@ done this, `dat.long` should have matching entries to `dat.reduced`;
 confirm that this is the case.
 
 ```{r q9f}
-# YOUR CODE GOES HERE
+dat.long <- dat.wide %>%
+  pivot_longer(-Name, names_to = "City", values_to = "Time", values_drop_na = TRUE) %>%
+  arrange(Name, City)
+
+# Confirm matching entries with dat.reduced
+print(all.equal(dat.long, dat.reduced))
 ```
